@@ -164,7 +164,7 @@ export default {
         const r = await env.DB.prepare(
           "SELECT COUNT(*) AS n FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'"
         ).first();
-        return json({ ok: true, tables: r.n, bindings: Object.keys(env) });
+        return json({ ok: true, tables: r.n });
       }
       if (request.method === "GET" && p === "/api/me") {
         const u = await currentUser(request, env);
