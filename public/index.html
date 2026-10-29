@@ -123,10 +123,10 @@ async function loadMe() {
 }
 async function submit() {
   if (busy) return;
+    const body = { email: vals.email, password: vals.password, token };
+  if (mode === "register") body.home_name = vals.home;
   busy = true; err = ""; render();
   try {
-    const body = { email: vals.email, password: vals.password, token };
-    if (mode === "register") body.home_name = vals.home;
     const { ok, d } = await post(mode === "register" ? "/api/register" : "/api/login", body);
     if (ok) { vals.password = ""; busy = false; await loadMe(); return; }
     err = msg(d.error, d);
