@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventario</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#16181D; --muted:#4A4F5A; --line:#D9DCE3; --blue:#1F4E9C; --green:#2E8B57; --red:#C8372D; --bg:#FFFFFF; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Noto Sans",system-ui,sans-serif; font-size:15px; }
+  .top { height:60px; padding:0 20px; display:flex; align-items:center; }
+  .logo { font-weight:700; font-size:19px; letter-spacing:-0.3px; }
+  .lang { margin-left:auto; display:flex; border:1.5px solid var(--blue); border-radius:999px; overflow:hidden; }
+  .lang button { border:0; background:#fff; color:var(--blue); font:700 12px "Noto Sans",sans-serif; padding:7px 12px; min-height:34px; cursor:pointer; }
+  .lang button.on { background:var(--blue); color:#fff; }
+  main { max-width:480px; margin:0 auto; padding:8px 20px; }
+  h1 { font-size:24px; letter-spacing:-0.4px; margin:6px 0 14px; }
+  .card { border:1.5px solid var(--line); border-radius:18px; padding:16px; }
+  .row { display:flex; align-items:center; gap:10px; }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--line); }
+  .dot.ok { background:var(--green); } .dot.err { background:var(--red); }
+  .t { font-size:12px; color:var(--muted); margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="top"><span class="logo">Inventario</span>
+  <div class="lang"><button id="es" class="on" aria-label="Español">ES</button><button id="en" aria-label="English">EN</button></div></div>
+<main>
+  <h1 id="title"></h1>
+  <div class="card">
+    <div class="row"><span id="dot" class="dot"></span><strong id="status"></strong></div>
+    <div class="t" id="note"></div>
+  </div>
+</main>
+<script>
+const T = {
+  es: { title:"Conexión del sistema", wait:"Comprobando...", ok:"Base de datos conectada", err:"Sin conexión con la base de datos", tables:"Tablas creadas:", note:"Fase 1, paso de verificación. La aplicación completa viene a continuación." },
+  en: { title:"System connection", wait:"Checking...", ok:"Database connected", err:"No connection to the database", tables:"Tables created:", note:"Phase 1, verification step. The full app comes next." }
+};
+let lang = "es", result = null;
+function render() {
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  document.getElementById("title").textContent = t.title;
+  document.getElementById("es").className = lang === "es" ? "on" : "";
+  document.getElementById("en").className = lang === "en" ? "on" : "";
+  const dot = document.getElementById("dot"), st = document.getElementById("status"), note = document.getElementById("note");
+  if (!result) { st.textContent = t.wait; dot.className = "dot"; note.textContent = t.note; return; }
+  dot.className = "dot " + (result.ok ? "ok" : "err");
+  st.textContent = result.ok ? t.ok : t.err;
+  note.textContent = (result.ok ? t.tables + " " + result.tables + ". " : "") + t.note;
+}
+document.getElementById("es").onclick = () => { lang = "es"; render(); };
+document.getElementById("en").onclick = () => { lang = "en"; render(); };
+fetch("/api/health").then(r => r.json()).then(j => { result = j; render(); }).catch(() => { result = { ok:false }; render(); });
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "ihogar",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "inventario-hogar",
+      "database_id": "54294e3b-3702-46d5-87ba-aefd3050d996"
+    }
+  ]
+}
