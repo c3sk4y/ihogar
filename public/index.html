@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <style>
-  :root { --ink:#16181D; --muted:#4A4F5A; --line:#D9DCE3; --blue:#1F4E9C; --green:#2E8B57; --red:#C8372D; }
+  :root { --ink:#16181D; --muted:#4A4F5A; --line:#D9DCE3; --blue:#1F4E9C; --green:#2E8B57; --yellow:#F2B705; --red:#C8372D; }
   * { box-sizing:border-box; }
   body { margin:0; background:#fff; color:var(--ink); font-family:"Noto Sans",system-ui,sans-serif; font-size:15px; }
   .top { height:60px; padding:0 20px; display:flex; align-items:center; max-width:480px; margin:0 auto; }
@@ -15,31 +15,53 @@
   .lang { margin-left:auto; display:flex; border:1.5px solid var(--blue); border-radius:999px; overflow:hidden; }
   .lang button { border:0; background:#fff; color:var(--blue); font:700 12px "Noto Sans",sans-serif; padding:7px 12px; min-height:34px; cursor:pointer; }
   .lang button.on { background:var(--blue); color:#fff; }
-  main { max-width:480px; margin:0 auto; padding:8px 20px 40px; }
+  main { max-width:480px; margin:0 auto; padding:8px 20px 100px; }
   h1 { font-size:24px; letter-spacing:-0.4px; margin:6px 0 14px; }
   .tabs { display:flex; margin-bottom:18px; }
   .tab { flex:1; min-height:44px; border:0; background:#fff; font:700 14px "Noto Sans",sans-serif; color:var(--muted); border-bottom:3px solid var(--line); cursor:pointer; }
   .tab.on { color:var(--blue); border-bottom-color:var(--blue); }
   .f { margin-bottom:14px; }
   .lbl { font-size:11px; color:var(--muted); font-weight:500; margin-bottom:2px; display:block; }
-  input { display:block; width:100%; border:1.5px solid var(--line); border-radius:12px; padding:10px 12px; min-height:48px; font:500 15px "Noto Sans",sans-serif; color:var(--ink); background:#fff; }
-  input:focus { outline:2px solid var(--blue); outline-offset:1px; }
+  input, select { display:block; width:100%; border:1.5px solid var(--line); border-radius:12px; padding:10px 12px; min-height:48px; font:500 15px "Noto Sans",sans-serif; color:var(--ink); background:#fff; }
+  input:focus, select:focus, button:focus-visible { outline:2px solid var(--blue); outline-offset:1px; }
   .btn { border:0; border-radius:14px; font:700 15px "Noto Sans",sans-serif; min-height:52px; width:100%; cursor:pointer; }
   .p { background:var(--blue); color:#fff; } .p:disabled { opacity:.6; cursor:default; }
   .s { background:#fff; color:var(--blue); border:1.5px solid var(--blue); }
+  .d { background:var(--red); color:#fff; }
   .err { color:var(--red); font-weight:700; font-size:13px; margin:0 0 14px; }
+  .ok { color:var(--ink); font-weight:700; font-size:13px; margin:0 0 14px; display:flex; gap:8px; align-items:center; }
   .t { font-size:12px; color:var(--muted); margin-top:12px; }
   .card { border:1.5px solid var(--line); border-radius:18px; padding:16px; margin-bottom:16px; }
   .row { display:flex; gap:12px; align-items:center; }
-  .dot { width:10px; height:10px; border-radius:50%; background:var(--green); }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--green); flex:none; }
   .val { font-size:15px; font-weight:700; }
   #cf { margin-bottom:14px; min-height:65px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .chip { min-height:38px; padding:0 14px; border-radius:999px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font:700 13px "Noto Sans",sans-serif; cursor:pointer; }
+  .chip.on { background:var(--blue); color:#fff; }
+  .item { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .bar { width:6px; border-radius:3px; flex:none; }
+  .info { flex:1; min-width:0; }
+  .x { font-size:13px; font-weight:500; margin-top:4px; }
+  .side { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; gap:8px; }
+  .tag { background:var(--blue); color:#fff; font-size:11px; font-weight:700; border-radius:999px; padding:4px 10px; white-space:nowrap; }
+  .mini { min-height:38px; padding:0 16px; border-radius:999px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font:700 13px "Noto Sans",sans-serif; cursor:pointer; }
+  .panel { background:#fff; border:1.5px solid var(--line); border-radius:14px; padding:14px; margin:8px 0 4px; }
+  .two { display:flex; gap:10px; margin-top:12px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid .full { grid-column:1 / 3; }
+  .nav { position:fixed; left:0; right:0; bottom:0; height:68px; background:#fff; border-top:1px solid var(--line); display:flex; max-width:480px; margin:0 auto; }
+  .nav:empty { display:none; }
+  .nav button { flex:1; border:0; background:#fff; color:var(--muted); font:500 11px "Noto Sans",sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border-top:3px solid transparent; cursor:pointer; }
+  .nav button.on { color:var(--blue); font-weight:700; border-top-color:var(--blue); }
+  .nav svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 </style>
 </head>
 <body>
 <div class="top"><span class="logo">Inventario</span>
   <div class="lang"><button id="es" aria-label="Español">ES</button><button id="en" aria-label="English">EN</button></div></div>
 <main id="app"></main>
+<nav class="nav" id="nav"></nav>
 <script>
 const SITE_KEY = "0x4AAAAAAFrhgjVPdQ5D-xno";
 const T = {
@@ -47,29 +69,97 @@ const T = {
     login:"Ingresar", register:"Crear cuenta", email:"Correo", password:"Contrase\u00f1a", home:"Nombre del hogar",
     first:"Al crear tu cuenta se crea tu hogar y quedas como gestor. Podr\u00e1s invitar hasta 2 personas m\u00e1s.",
     rules:"Tras 3 intentos fallidos, el acceso se bloquea 15 minutos. Un correo pertenece a una sola cuenta y a un solo hogar.",
-    wait:"Un momento...", out:"Cerrar sesi\u00f3n", role_manager:"Gestor", role_member:"Integrante", members:"Integrantes",
-    of:"de", next:"Siguiente paso: ingreso de productos e inventario.", loading:"Cargando...",
+    wait:"Un momento...", out:"Cerrar sesi\u00f3n", role_manager:"Gestor", role_member:"Integrante", members:"Integrantes", of:"de", loading:"Cargando...",
+    nav:{ inv:"Inventario", add:"Agregar", home:"Hogar" },
+    filters:{ all:"Todo", soon:"Por vencer", low:"Stock bajo", expired:"Vencidos" },
+    cat:{ food:"Alimentos", cleaning:"Limpieza", supplies:"Insumos", medicine:"Remedios" },
+    unit:{ unit:"unidad", kg:"kg", g:"g", l:"litro", ml:"ml", dose:"dosis" },
+    loc:{ kitchen:"Cocina", pantry:"Despensa", fridge:"Refrigerador", bathroom:"Ba\u00f1o", medicine:"Botiqu\u00edn", storage:"Bodega" },
+    f_name:"Nombre", f_cat:"Categor\u00eda", f_qty:"Cantidad", f_unit:"Unidad", f_loc:"Ubicaci\u00f3n", f_buy:"Fecha de compra",
+    f_exp:"Caducidad (opcional)", f_exp_req:"Caducidad (obligatoria)", f_min:"Stock m\u00ednimo (opcional)", f_bar:"C\u00f3digo de barras (opcional)",
+    add_title:"Agregar producto", save:"Guardar en inventario", saved:"Guardado en el inventario.",
+    inv_title:"Inventario", fifo:"Orden FIFO: lo que vence primero, arriba.", empty:"No hay productos todav\u00eda. Agrega el primero.",
+    use:"Usar", use_first:"Usar primero", confirm:"Confirmar", cancel:"Cancelar", discard:"Descartar", discard_q:"\u00bfDescartar este lote como merma?",
+    qty_use:"Cantidad a usar", fifo_use:"Se descuenta del lote que vence primero.", low_t:"Stock bajo", no_exp:"Sin caducidad", exp_today:"Vence hoy",
+    exp_in:(n)=>"Vence en "+n+(n===1?" d\u00eda":" d\u00edas"), exp_ago:(n)=>"Vencido hace "+n+(n===1?" d\u00eda":" d\u00edas"), exp_on:(d)=>"Vence "+d,
+    next:"Siguiente: lectura de c\u00f3digo de barras, invitaciones y traspaso de gestor.",
     e:{ invalid_credentials:"Correo o contrase\u00f1a incorrectos. Te quedan {n} intentos.", locked:"Acceso bloqueado. Intenta de nuevo en {m} minutos.",
         captcha:"Completa la verificaci\u00f3n de seguridad.", email_in_use:"Este correo ya tiene una cuenta.", weak_password:"La contrase\u00f1a debe tener al menos 10 caracteres.",
-        invalid_email:"Escribe un correo v\u00e1lido.", invalid_home:"Escribe un nombre para el hogar (hasta 60 caracteres).", network:"Sin conexi\u00f3n. Intenta de nuevo.", server:"Error del servidor. Intenta de nuevo.", server_config:"Falta configurar el servidor." }
+        invalid_email:"Escribe un correo v\u00e1lido.", invalid_home:"Escribe un nombre para el hogar (hasta 60 caracteres).", network:"Sin conexi\u00f3n. Intenta de nuevo.",
+        server:"Error del servidor. Intenta de nuevo.", server_config:"Falta configurar el servidor.",
+        invalid_name:"Escribe un nombre (hasta 80 caracteres).", invalid_quantity:"La cantidad debe ser mayor que 0.", invalid_date:"Revisa las fechas.",
+        expiry_required:"Alimentos y remedios necesitan fecha de caducidad.", invalid_barcode:"El c\u00f3digo de barras debe tener de 6 a 14 d\u00edgitos.",
+        invalid_location:"Elige una ubicaci\u00f3n.", insufficient:"No hay suficiente cantidad. Disponible: {n}." }
   },
   en: {
     login:"Sign in", register:"Create account", email:"Email", password:"Password", home:"Home name",
     first:"Creating your account creates your home and makes you the manager. You can invite up to 2 more people.",
     rules:"After 3 failed attempts, access is locked for 15 minutes. One email belongs to one account and one home.",
-    wait:"One moment...", out:"Sign out", role_manager:"Manager", role_member:"Member", members:"Members",
-    of:"of", next:"Next step: product entry and inventory.", loading:"Loading...",
+    wait:"One moment...", out:"Sign out", role_manager:"Manager", role_member:"Member", members:"Members", of:"of", loading:"Loading...",
+    nav:{ inv:"Inventory", add:"Add", home:"Home" },
+    filters:{ all:"All", soon:"Expiring", low:"Low stock", expired:"Expired" },
+    cat:{ food:"Food", cleaning:"Cleaning", supplies:"Supplies", medicine:"Medicines" },
+    unit:{ unit:"unit", kg:"kg", g:"g", l:"liter", ml:"ml", dose:"dose" },
+    loc:{ kitchen:"Kitchen", pantry:"Pantry", fridge:"Refrigerator", bathroom:"Bathroom", medicine:"Medicine cabinet", storage:"Storage room" },
+    f_name:"Name", f_cat:"Category", f_qty:"Quantity", f_unit:"Unit", f_loc:"Location", f_buy:"Purchase date",
+    f_exp:"Expiry date (optional)", f_exp_req:"Expiry date (required)", f_min:"Minimum stock (optional)", f_bar:"Barcode (optional)",
+    add_title:"Add product", save:"Save to inventory", saved:"Saved to inventory.",
+    inv_title:"Inventory", fifo:"FIFO order: what expires first, on top.", empty:"No products yet. Add the first one.",
+    use:"Use", use_first:"Use first", confirm:"Confirm", cancel:"Cancel", discard:"Discard", discard_q:"Discard this batch as waste?",
+    qty_use:"Quantity to use", fifo_use:"Deducted from the batch that expires first.", low_t:"Low stock", no_exp:"No expiry date", exp_today:"Expires today",
+    exp_in:(n)=>"Expires in "+n+(n===1?" day":" days"), exp_ago:(n)=>"Expired "+n+(n===1?" day":" days")+" ago", exp_on:(d)=>"Expires "+d,
+    next:"Next: barcode scanning, invitations and manager handover.",
     e:{ invalid_credentials:"Incorrect email or password. {n} attempts left.", locked:"Access locked. Try again in {m} minutes.",
         captcha:"Complete the security check.", email_in_use:"This email already has an account.", weak_password:"Password must be at least 10 characters.",
-        invalid_email:"Enter a valid email.", invalid_home:"Enter a home name (up to 60 characters).", network:"No connection. Try again.", server:"Server error. Try again.", server_config:"Server is not configured." }
+        invalid_email:"Enter a valid email.", invalid_home:"Enter a home name (up to 60 characters).", network:"No connection. Try again.",
+        server:"Server error. Try again.", server_config:"Server is not configured.",
+        invalid_name:"Enter a name (up to 80 characters).", invalid_quantity:"Quantity must be greater than 0.", invalid_date:"Check the dates.",
+        expiry_required:"Food and medicines need an expiry date.", invalid_barcode:"Barcode must have 6 to 14 digits.",
+        invalid_location:"Choose a location.", insufficient:"Not enough quantity. Available: {n}." }
   }
 };
-let lang = "es", mode = "login", user = null, token = "", err = "", busy = false, vals = { email:"", password:"", home:"" };
-const app = document.getElementById("app");
+const pad = (n) => String(n).padStart(2, "0");
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+const daysTo = (d) => Math.round((Date.parse(d + "T00:00:00") - Date.parse(today() + "T00:00:00")) / 864e5);
+const fmtDate = (d) => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4);
+const fmtQ = (q) => String(Math.round(q * 1000) / 1000);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const ICON = {
+  inv:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l8-3 8 3-8 3-8-3zM4 7v10l8 3 8-3V7M12 10v10"/></svg>',
+  add:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7M6 10v10h12V10"/></svg>'
+};
+let lang = "es", mode = "login", user = undefined, token = "", err = "", busy = false, vals = { email:"", password:"", home:"" };
+let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, actErr = "", addMsg = "", addErr = "";
+let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"" };
+const app = document.getElementById("app"), nav = document.getElementById("nav");
+
 function msg(code, d) {
   const m = T[lang].e[code] || T[lang].e.server;
-  return m.replace("{n}", d && d.attempts_left).replace("{m}", d && d.retry_after ? Math.ceil(d.retry_after / 60) : "");
+  return m.replace("{n}", d && (d.attempts_left !== undefined ? d.attempts_left : fmtQ(d.available || 0))).replace("{m}", d && d.retry_after ? Math.ceil(d.retry_after / 60) : "");
+}
+async function post(path, body) {
+  const r = await fetch(path, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify(body) });
+  let d = {}; try { d = await r.json(); } catch (e) {}
+  if (r.status === 401 && user && d.error === "unauthorized") { user = null; render(); }
+  return { ok: r.ok, d };
+}
+async function get(path) {
+  const r = await fetch(path); let d = {}; try { d = await r.json(); } catch (e) {}
+  if (r.status === 401 && user) { user = null; render(); }
+  return { ok: r.ok, d };
+}
+async function loadData() {
+  const [l, p, i] = await Promise.all([get("/api/locations"), get("/api/products"), get("/api/inventory")]);
+  if (l.ok) locs = l.d.locations;
+  if (p.ok) prods = p.d.products;
+  if (i.ok) inv = i.d.items;
+  if (!form.location_id && locs.length) { const pa = locs.find((x) => x.name === "pantry"); form.location_id = (pa || locs[0]).id; }
+}
+async function loadMe() {
+  try { const r = await fetch("/api/me"); user = r.ok ? await r.json() : null; } catch (e) { user = null; }
+  if (user) { try { await loadData(); } catch (e) {} }
+  render();
 }
 function mountCaptcha() {
   const el = document.getElementById("cf");
@@ -81,21 +171,8 @@ function mountCaptcha() {
   };
   go();
 }
-function render() {
-  const t = T[lang];
-  document.documentElement.lang = lang;
-  document.getElementById("es").className = lang === "es" ? "on" : "";
-  document.getElementById("en").className = lang === "en" ? "on" : "";
-  if (user === undefined) { app.innerHTML = '<p class="t">' + t.loading + "</p>"; return; }
-  if (user) {
-    const role = user.role === "manager" ? t.role_manager : t.role_member;
-    app.innerHTML = '<h1>' + esc(user.home.name) + '</h1><div class="card"><div class="row"><span class="dot"></span><span class="val">' + esc(user.email) + '</span></div>' +
-      '<div class="t">' + role + ' \u00b7 ' + t.members + ' ' + user.home.members + ' ' + t.of + ' ' + user.home.max + '</div></div>' +
-      '<div class="t" style="margin:0 0 16px">' + t.next + '</div><button class="btn s" id="out">' + t.out + '</button>';
-    document.getElementById("out").onclick = async () => { await post("/api/logout", {}); user = null; vals.password = ""; render(); };
-    return;
-  }
-  const reg = mode === "register";
+function accessView() {
+  const t = T[lang], reg = mode === "register";
   app.innerHTML = '<h1>' + (reg ? t.register : t.login) + '</h1>' +
     '<div class="tabs"><button class="tab ' + (reg ? "" : "on") + '" id="tl">' + t.login + '</button><button class="tab ' + (reg ? "on" : "") + '" id="tr">' + t.register + '</button></div>' +
     '<div class="f"><label class="lbl" for="em">' + t.email + '</label><input id="em" type="email" autocomplete="email" value="' + esc(vals.email) + '"></div>' +
@@ -112,30 +189,150 @@ function render() {
   document.getElementById("go").onclick = submit;
   mountCaptcha();
 }
-async function post(path, body) {
-  const r = await fetch(path, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify(body) });
-  let d = {}; try { d = await r.json(); } catch (e) {}
-  return { ok: r.ok, d };
+function opts(list, sel, label) {
+  return list.map((v) => '<option value="' + esc(v) + '"' + (v === sel ? " selected" : "") + ">" + esc(label(v)) + "</option>").join("");
 }
-async function loadMe() {
-  try { const r = await fetch("/api/me"); user = r.ok ? await r.json() : null; } catch (e) { user = null; }
-  render();
+function statusOf(r) {
+  const t = T[lang];
+  const days = r.expiry_date ? daysTo(r.expiry_date) : null;
+  const low = r.min_stock > 0 && r.total < r.min_stock;
+  let color = "var(--green)", cls = "ok";
+  if (days !== null && days < 0) { color = "var(--red)"; cls = "expired"; }
+  else if ((days !== null && days <= 7) || low) { color = "var(--yellow)"; cls = "soon"; }
+  let text = days === null ? t.no_exp : days < 0 ? t.exp_ago(-days) : days === 0 ? t.exp_today : days <= 7 ? t.exp_in(days) : t.exp_on(fmtDate(r.expiry_date));
+  return { days, low, color, cls, text };
+}
+function invView() {
+  const t = T[lang], pc = {}, seen = {};
+  inv.forEach((r) => { pc[r.product_id] = (pc[r.product_id] || 0) + 1; });
+  const chips = Object.keys(t.filters).map((k) => '<button class="chip ' + (filter === k ? "on" : "") + '" data-a="filter" data-t="' + k + '">' + t.filters[k] + "</button>").join("");
+  let html = '<h1>' + t.inv_title + '</h1><div class="chips">' + chips + '</div><div class="t" style="margin:0 0 4px">' + t.fifo + "</div>";
+  let n = 0;
+  inv.forEach((r) => {
+    const s = statusOf(r), firstOne = !seen[r.product_id] && pc[r.product_id] > 1;
+    seen[r.product_id] = true;
+    if (filter === "soon" && !(s.days !== null && s.days >= 0 && s.days <= 7)) return;
+    if (filter === "low" && !s.low) return;
+    if (filter === "expired" && s.cls !== "expired") return;
+    n++;
+    const who = r.owner ? r.owner.split("@")[0] : "";
+    html += '<div class="item"><div class="bar" style="background:' + s.color + '"></div><div class="info"><div class="val">' + esc(r.name) + '</div>' +
+      '<div class="t" style="margin-top:2px">' + esc((t.loc[r.location] || r.location || "")) + " \u00b7 " + fmtQ(r.quantity) + " " + esc(t.unit[r.unit] || r.unit) + (who ? " \u00b7 " + esc(who) : "") + '</div>' +
+      '<div class="x">' + esc(s.text) + '</div>' + (s.low ? '<div class="x">' + t.low_t + "</div>" : "") + '</div>' +
+      '<div class="side">' + (firstOne ? '<span class="tag">' + t.use_first + "</span>" : "") +
+      '<button class="mini" data-a="use_open" data-b="' + r.batch_id + '">' + t.use + "</button>" +
+      (s.cls === "expired" ? '<button class="mini" style="color:var(--red);border-color:var(--red)" data-a="disc_open" data-b="' + r.batch_id + '">' + t.discard + "</button>" : "") + "</div></div>";
+    if (act && act.bid === r.batch_id) {
+      html += '<div class="panel">' + (act.kind === "use"
+        ? '<label class="lbl" for="uq">' + t.qty_use + '</label><input id="uq" type="number" inputmode="decimal" min="0" step="any" value="1"><div class="t" style="margin-top:6px">' + t.fifo_use + '</div>' +
+          (actErr ? '<p class="err" style="margin:8px 0 0">' + esc(actErr) + "</p>" : "") +
+          '<div class="two"><button class="btn p" data-a="use_ok" data-p="' + r.product_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div>"
+        : '<div class="val">' + t.discard_q + '</div><div class="two"><button class="btn d" data-a="disc_ok" data-b="' + r.batch_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div>") + "</div>";
+    }
+  });
+  if (!n) html += '<p class="t">' + t.empty + "</p>";
+  return html;
+}
+function addView() {
+  const t = T[lang], req = form.category === "food" || form.category === "medicine";
+  return '<h1>' + t.add_title + '</h1>' +
+    '<div class="f"><label class="lbl" for="f_name">' + t.f_name + '</label><input id="f_name" data-f="name" list="plist" maxlength="80" autocomplete="off" value="' + esc(form.name) + '"></div>' +
+    '<datalist id="plist">' + prods.map((p) => '<option value="' + esc(p.name) + '"></option>').join("") + "</datalist>" +
+    '<div class="grid">' +
+    '<div class="f"><label class="lbl" for="f_category">' + t.f_cat + '</label><select id="f_category" data-f="category">' + opts(["food", "cleaning", "supplies", "medicine"], form.category, (v) => t.cat[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_location_id">' + t.f_loc + '</label><select id="f_location_id" data-f="location_id">' + opts(locs.map((l) => l.id), form.location_id, (id) => { const l = locs.find((x) => x.id === id); return t.loc[l.name] || l.name; }) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_quantity">' + t.f_qty + '</label><input id="f_quantity" data-f="quantity" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.quantity) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_unit">' + t.f_unit + '</label><select id="f_unit" data-f="unit">' + opts(["unit", "kg", "g", "l", "ml", "dose"], form.unit, (v) => t.unit[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_purchase_date">' + t.f_buy + '</label><input id="f_purchase_date" data-f="purchase_date" type="date" value="' + esc(form.purchase_date) + '"></div>' +
+    '<div class="f"><label class="lbl" id="l_exp" for="f_expiry_date">' + (req ? t.f_exp_req : t.f_exp) + '</label><input id="f_expiry_date" data-f="expiry_date" type="date" value="' + esc(form.expiry_date) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_min_stock">' + t.f_min + '</label><input id="f_min_stock" data-f="min_stock" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.min_stock) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_barcode">' + t.f_bar + '</label><input id="f_barcode" data-f="barcode" inputmode="numeric" maxlength="14" value="' + esc(form.barcode) + '"></div></div>' +
+    (addErr ? '<p class="err" role="alert">' + esc(addErr) + "</p>" : "") + (addMsg ? '<p class="ok"><span class="dot"></span>' + esc(addMsg) + "</p>" : "") +
+    '<button class="btn p" data-a="save"' + (busy ? " disabled" : "") + ">" + (busy ? t.wait : t.save) + "</button>";
+}
+function homeView() {
+  const t = T[lang], role = user.role === "manager" ? t.role_manager : t.role_member;
+  return '<h1>' + esc(user.home.name) + '</h1><div class="card"><div class="row"><span class="dot"></span><span class="val">' + esc(user.email) + '</span></div>' +
+    '<div class="t">' + role + " \u00b7 " + t.members + " " + user.home.members + " " + t.of + " " + user.home.max + '</div></div>' +
+    '<div class="t" style="margin:0 0 16px">' + t.next + '</div><button class="btn s" data-a="out">' + t.out + "</button>";
+}
+function render() {
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  document.getElementById("es").className = lang === "es" ? "on" : "";
+  document.getElementById("en").className = lang === "en" ? "on" : "";
+  if (user === undefined) { app.innerHTML = '<p class="t">' + t.loading + "</p>"; nav.innerHTML = ""; return; }
+  if (!user) { nav.innerHTML = ""; accessView(); return; }
+  app.innerHTML = tab === "add" ? addView() : tab === "home" ? homeView() : invView();
+  nav.innerHTML = ["inv", "add", "home"].map((k) => '<button class="' + (tab === k ? "on" : "") + '" data-a="tab" data-t="' + k + '">' + ICON[k] + "<span>" + t.nav[k] + "</span></button>").join("");
 }
 async function submit() {
   if (busy) return;
-    const body = { email: vals.email, password: vals.password, token };
+  const body = { email: vals.email, password: vals.password, token };
   if (mode === "register") body.home_name = vals.home;
   busy = true; err = ""; render();
   try {
     const { ok, d } = await post(mode === "register" ? "/api/register" : "/api/login", body);
-    if (ok) { vals.password = ""; busy = false; await loadMe(); return; }
+    if (ok) { vals.password = ""; busy = false; tab = "inv"; await loadMe(); return; }
     err = msg(d.error, d);
   } catch (e) { err = msg("network"); }
   busy = false; render();
 }
+async function saveBatch() {
+  if (busy) return;
+  addMsg = ""; addErr = ""; busy = true; render();
+  try {
+    const r = await post("/api/batches", Object.assign({}, form, { quantity: Number(form.quantity), min_stock: Number(form.min_stock || 0) }));
+    if (r.ok) {
+      addMsg = T[lang].saved;
+      form.name = ""; form.quantity = "1"; form.expiry_date = ""; form.barcode = ""; form.min_stock = "0";
+      await loadData();
+    } else addErr = msg(r.d.error, r.d);
+  } catch (e) { addErr = msg("network"); }
+  busy = false; render(); window.scrollTo(0, 0);
+}
+const actions = {
+  tab: (d) => { tab = d.t; act = null; addMsg = ""; addErr = ""; render(); },
+  filter: (d) => { filter = d.t; act = null; render(); },
+  use_open: (d) => { act = { kind:"use", bid:d.b }; actErr = ""; render(); },
+  disc_open: (d) => { act = { kind:"disc", bid:d.b }; render(); },
+  cancel: () => { act = null; render(); },
+  use_ok: async (d) => {
+    const q = Number(document.getElementById("uq").value);
+    const r = await post("/api/products/" + d.p + "/use", { quantity: q });
+    if (r.ok) { act = null; await loadData(); } else actErr = msg(r.d.error, r.d);
+    render();
+  },
+  disc_ok: async (d) => { await post("/api/batches/" + d.b + "/discard", {}); act = null; await loadData(); render(); },
+  save: saveBatch,
+  out: async () => { await post("/api/logout", {}); user = null; vals.password = ""; inv = []; render(); }
+};
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-a]");
+  if (b && actions[b.dataset.a]) actions[b.dataset.a](b.dataset);
+});
+document.addEventListener("input", (e) => { const f = e.target.dataset && e.target.dataset.f; if (f) form[f] = e.target.value; });
+document.addEventListener("change", (e) => {
+  const f = e.target.dataset && e.target.dataset.f;
+  if (!f) return;
+  form[f] = e.target.value;
+  if (f === "category") {
+    const req = form.category === "food" || form.category === "medicine";
+    document.getElementById("l_exp").textContent = req ? T[lang].f_exp_req : T[lang].f_exp;
+  }
+  if (f === "name") {
+    const p = prods.find((x) => x.name.toLowerCase() === form.name.trim().toLowerCase());
+    if (p) {
+      form.category = p.category || form.category; form.unit = p.unit; form.barcode = p.barcode || ""; form.min_stock = String(p.min_stock || 0);
+      ["category", "unit", "barcode", "min_stock"].forEach((k) => { document.getElementById("f_" + k).value = form[k]; });
+      const req = form.category === "food" || form.category === "medicine";
+      document.getElementById("l_exp").textContent = req ? T[lang].f_exp_req : T[lang].f_exp;
+    }
+  }
+});
 document.getElementById("es").onclick = () => { lang = "es"; render(); };
 document.getElementById("en").onclick = () => { lang = "en"; render(); };
-user = undefined; render(); loadMe();
+render(); loadMe();
 </script>
 </body>
 </html>

@@ -121,6 +121,7 @@ async function register(req, env, ip) {
     await env.DB.batch([
       env.DB.prepare("INSERT INTO homes (id, name, manager_id) VALUES (?, ?, ?)").bind(hid, home, pid),
       env.DB.prepare("INSERT INTO people (id, email, password_hash, home_id, role) VALUES (?, ?, ?, ?, 'manager')").bind(pid, email, hash, hid),
+      ...DEFAULT_LOCS.map((n) => env.DB.prepare("INSERT INTO locations (id, home_id, name) VALUES (?, ?, ?)").bind(crypto.randomUUID(), hid, n)),
     ]);
   } catch (e) {
     if (/UNIQUE/i.test(String(e.message))) return json({ error: "email_in_use" }, 409);
@@ -153,6 +154,96 @@ async function login(req, env, ip) {
   return newSession(env, p.id);
 }
 
+const CATS = ["food", "cleaning", "supplies", "medicine"];
+const UNITS = ["unit", "kg", "g", "l", "ml", "dose"];
+const DEFAULT_LOCS = ["kitchen", "pantry", "fridge", "bathroom", "medicine", "storage"];
+const isDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s));
+const FIFO = "ORDER BY (b.expiry_date IS NULL), b.expiry_date, b.purchase_date, b.created_at";
+
+async function listLocations(env, u) {
+  const r = await env.DB.prepare("SELECT id, name FROM locations WHERE home_id = ? ORDER BY name").bind(u.home_id).all();
+  return json({ locations: r.results });
+}
+async function listProducts(env, u) {
+  const r = await env.DB.prepare("SELECT id, name, category, unit, barcode, min_stock FROM products WHERE home_id = ? ORDER BY name").bind(u.home_id).all();
+  return json({ products: r.results });
+}
+async function listInventory(env, u) {
+  const r = await env.DB.prepare(
+    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, o.email AS owner, " +
+    "(SELECT SUM(b2.quantity) FROM batches b2 WHERE b2.product_id = p.id AND b2.status = 'active') AS total " +
+    "FROM batches b JOIN products p ON p.id = b.product_id LEFT JOIN locations l ON l.id = b.location_id LEFT JOIN people o ON o.id = b.owner_id " +
+    "WHERE p.home_id = ? AND b.status = 'active' " + FIFO
+  ).bind(u.home_id).all();
+  return json({ items: r.results });
+}
+async function addBatch(req, env, u) {
+  const b = await readJson(req);
+  if (!b) return json({ error: "bad_request" }, 400);
+  const name = typeof b.name === "string" ? b.name.trim() : "";
+  if (name.length < 1 || name.length > 80) return json({ error: "invalid_name" }, 400);
+  if (!CATS.includes(b.category)) return json({ error: "invalid_category" }, 400);
+  if (!UNITS.includes(b.unit)) return json({ error: "invalid_unit" }, 400);
+  const qty = Number(b.quantity);
+  if (!(qty > 0 && qty <= 100000)) return json({ error: "invalid_quantity" }, 400);
+  const min = Number(b.min_stock || 0);
+  if (!(min >= 0 && min <= 100000)) return json({ error: "invalid_quantity" }, 400);
+  if (!isDate(b.purchase_date)) return json({ error: "invalid_date" }, 400);
+  const exp = b.expiry_date ? b.expiry_date : null;
+  if (exp && !isDate(exp)) return json({ error: "invalid_date" }, 400);
+  if ((b.category === "food" || b.category === "medicine") && !exp) return json({ error: "expiry_required" }, 400);
+  const barcode = typeof b.barcode === "string" && b.barcode.trim() ? b.barcode.trim() : null;
+  if (barcode && !/^\d{6,14}$/.test(barcode)) return json({ error: "invalid_barcode" }, 400);
+  const loc = await env.DB.prepare("SELECT id FROM locations WHERE id = ? AND home_id = ?").bind(String(b.location_id || ""), u.home_id).first();
+  if (!loc) return json({ error: "invalid_location" }, 400);
+  const prod = barcode
+    ? await env.DB.prepare("SELECT id FROM products WHERE home_id = ? AND barcode = ?").bind(u.home_id, barcode).first()
+    : await env.DB.prepare("SELECT id FROM products WHERE home_id = ? AND barcode IS NULL AND lower(name) = lower(?) AND unit = ?").bind(u.home_id, name, b.unit).first();
+  const stmts = [];
+  let pid;
+  if (prod) pid = prod.id;
+  else {
+    pid = crypto.randomUUID();
+    stmts.push(env.DB.prepare("INSERT INTO products (id, home_id, name, category, barcode, unit, min_stock) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(pid, u.home_id, name, b.category, barcode, b.unit, min));
+  }
+  const bid = crypto.randomUUID();
+  stmts.push(env.DB.prepare("INSERT INTO batches (id, product_id, location_id, owner_id, quantity, purchase_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(bid, pid, loc.id, u.id, qty, b.purchase_date, exp));
+  stmts.push(env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id) VALUES (?, ?, 'in', ?, ?)").bind(crypto.randomUUID(), bid, qty, u.id));
+  await env.DB.batch(stmts);
+  return json({ ok: true, id: bid }, 201);
+}
+async function useProduct(req, env, u, pid) {
+  const b = await readJson(req);
+  const qty = b ? Number(b.quantity) : 0;
+  if (!(qty > 0 && qty <= 100000)) return json({ error: "invalid_quantity" }, 400);
+  const prod = await env.DB.prepare("SELECT id FROM products WHERE id = ? AND home_id = ?").bind(pid, u.home_id).first();
+  if (!prod) return json({ error: "not_found" }, 404);
+  const rows = (await env.DB.prepare("SELECT b.id, b.quantity FROM batches b WHERE b.product_id = ? AND b.status = 'active' " + FIFO).bind(pid).all()).results;
+  const total = rows.reduce((a, r) => a + r.quantity, 0);
+  if (qty > total + 1e-9) return json({ error: "insufficient", available: total }, 409);
+  let left = qty;
+  const stmts = [];
+  for (const r of rows) {
+    if (left <= 1e-9) break;
+    const take = Math.min(r.quantity, left);
+    const rem = Math.round((r.quantity - take) * 1e6) / 1e6;
+    stmts.push(env.DB.prepare("UPDATE batches SET quantity = ?, status = ? WHERE id = ?").bind(rem, rem <= 0 ? "empty" : "active", r.id));
+    stmts.push(env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id) VALUES (?, ?, 'use', ?, ?)").bind(crypto.randomUUID(), r.id, take, u.id));
+    left = Math.round((left - take) * 1e6) / 1e6;
+  }
+  await env.DB.batch(stmts);
+  return json({ ok: true });
+}
+async function discardBatch(env, u, bid) {
+  const r = await env.DB.prepare("SELECT b.id, b.quantity FROM batches b JOIN products p ON p.id = b.product_id WHERE b.id = ? AND p.home_id = ? AND b.status = 'active'").bind(bid, u.home_id).first();
+  if (!r) return json({ error: "not_found" }, 404);
+  await env.DB.batch([
+    env.DB.prepare("UPDATE batches SET status = 'discarded' WHERE id = ?").bind(bid),
+    env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id) VALUES (?, ?, 'waste', ?, ?)").bind(crypto.randomUUID(), bid, r.quantity, u.id),
+  ]);
+  return json({ ok: true });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -171,6 +262,24 @@ export default {
         if (!u) return json({ error: "unauthorized" }, 401);
         const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
         return json({ email: u.email, role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
+      }
+      if (p === "/api/locations" || p === "/api/products" || p === "/api/inventory" || /^\/api\/(batches|products\/[0-9a-f-]{36}\/use|batches\/[0-9a-f-]{36}\/discard)$/.test(p)) {
+        const u = await currentUser(request, env);
+        if (!u) return json({ error: "unauthorized" }, 401);
+        if (request.method === "GET") {
+          if (p === "/api/locations") return await listLocations(env, u);
+          if (p === "/api/products") return await listProducts(env, u);
+          if (p === "/api/inventory") return await listInventory(env, u);
+        } else if (request.method === "POST") {
+          const origin = request.headers.get("origin");
+          if (origin && new URL(origin).host !== url.host) return json({ error: "forbidden" }, 403);
+          if (p === "/api/batches") return await addBatch(request, env, u);
+          let m = p.match(/^\/api\/products\/([0-9a-f-]{36})\/use$/);
+          if (m) return await useProduct(request, env, u, m[1]);
+          m = p.match(/^\/api\/batches\/([0-9a-f-]{36})\/discard$/);
+          if (m) return await discardBatch(env, u, m[1]);
+        }
+        return json({ error: "not_found" }, 404);
       }
       if (request.method === "POST") {
         const origin = request.headers.get("origin");
