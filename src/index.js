@@ -110,19 +110,34 @@ async function register(req, env, ip) {
   const email = norm(b.email);
   const pw = typeof b.password === "string" ? b.password : "";
   const home = typeof b.home_name === "string" ? b.home_name.trim() : "";
+  const invite = typeof b.invite === "string" && b.invite ? b.invite : null;
   if (!validEmail(email)) return json({ error: "invalid_email" }, 400);
   if (pw.length < 10 || pw.length > 200) return json({ error: "weak_password" }, 400);
-  if (home.length < 1 || home.length > 60) return json({ error: "invalid_home" }, 400);
+  if (!invite && (home.length < 1 || home.length > 60)) return json({ error: "invalid_home" }, 400);
   if (!(await captchaOk(env, b.token, ip))) return json({ error: "captcha" }, 400);
-  const hid = crypto.randomUUID();
   const pid = crypto.randomUUID();
   const hash = await hashPassword(pw);
-  try {
-    await env.DB.batch([
+  let stmts;
+  if (invite) {
+    const inv = await env.DB.prepare("SELECT id, home_id, email FROM invitations WHERE token_hash = ? AND status = 'pending' AND expires_at > ?")
+      .bind(await sha256(invite), new Date().toISOString()).first();
+    if (!inv || String(inv.email).toLowerCase() !== email) return json({ error: "invalid_invite" }, 400);
+    const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(inv.home_id).first();
+    if (c.n >= MAX_HOME) return json({ error: "home_full" }, 409);
+    stmts = [
+      env.DB.prepare("INSERT INTO people (id, email, password_hash, home_id, role) VALUES (?, ?, ?, ?, 'member')").bind(pid, email, hash, inv.home_id),
+      env.DB.prepare("UPDATE invitations SET status = 'accepted' WHERE id = ?").bind(inv.id),
+    ];
+  } else {
+    const hid = crypto.randomUUID();
+    stmts = [
       env.DB.prepare("INSERT INTO homes (id, name, manager_id) VALUES (?, ?, ?)").bind(hid, home, pid),
       env.DB.prepare("INSERT INTO people (id, email, password_hash, home_id, role) VALUES (?, ?, ?, ?, 'manager')").bind(pid, email, hash, hid),
       ...DEFAULT_LOCS.map((n) => env.DB.prepare("INSERT INTO locations (id, home_id, name) VALUES (?, ?, ?)").bind(crypto.randomUUID(), hid, n)),
-    ]);
+    ];
+  }
+  try {
+    await env.DB.batch(stmts);
   } catch (e) {
     if (/UNIQUE/i.test(String(e.message))) return json({ error: "email_in_use" }, 409);
     throw e;
@@ -244,6 +259,71 @@ async function discardBatch(env, u, bid) {
   return json({ ok: true });
 }
 
+async function lookup(env, u, code) {
+  if (!/^\d{6,14}$/.test(code)) return json({ error: "invalid_barcode" }, 400);
+  const own = await env.DB.prepare("SELECT name, category, unit, min_stock FROM products WHERE home_id = ? AND barcode = ?").bind(u.home_id, code).first();
+  if (own) return json({ found: "home", product: own });
+  try {
+    const r = await fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands", {
+      headers: { "user-agent": "InventarioHogar/0.1" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (r.ok) {
+      const j = await r.json();
+      if (j.status === 1 && j.product && j.product.product_name) {
+        const brand = j.product.brands ? String(j.product.brands).split(",")[0].trim().slice(0, 40) : "";
+        return json({ found: "off", product: { name: String(j.product.product_name).slice(0, 80), brand } });
+      }
+    }
+  } catch (e) {}
+  return json({ found: null });
+}
+async function homeInfo(env, u) {
+  const members = (await env.DB.prepare("SELECT id, email, role FROM people WHERE home_id = ? ORDER BY (role = 'manager') DESC, email").bind(u.home_id).all()).results;
+  let invitations = [];
+  if (u.role === "manager") {
+    invitations = (await env.DB.prepare("SELECT id, email, expires_at FROM invitations WHERE home_id = ? AND status = 'pending' AND expires_at > ? ORDER BY created_at")
+      .bind(u.home_id, new Date().toISOString()).all()).results;
+  }
+  return json({ members, invitations, me: u.id, max: MAX_HOME });
+}
+async function createInvite(req, env, u) {
+  if (u.role !== "manager") return json({ error: "forbidden" }, 403);
+  const b = await readJson(req);
+  const email = norm(b && b.email);
+  if (!validEmail(email)) return json({ error: "invalid_email" }, 400);
+  if (await env.DB.prepare("SELECT id FROM people WHERE email = ?").bind(email).first()) return json({ error: "email_in_use" }, 409);
+  const now = new Date().toISOString();
+  const m = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
+  const pd = await env.DB.prepare("SELECT COUNT(*) AS n FROM invitations WHERE home_id = ? AND status = 'pending' AND expires_at > ? AND email <> ?").bind(u.home_id, now, email).first();
+  if (m.n + pd.n >= MAX_HOME) return json({ error: "home_full" }, 409);
+  const raw = b64url(crypto.getRandomValues(new Uint8Array(24)));
+  await env.DB.batch([
+    env.DB.prepare("UPDATE invitations SET status = 'cancelled' WHERE home_id = ? AND email = ? AND status = 'pending'").bind(u.home_id, email),
+    env.DB.prepare("INSERT INTO invitations (id, home_id, email, token_hash, expires_at) VALUES (?, ?, ?, ?, ?)")
+      .bind(crypto.randomUUID(), u.home_id, email, await sha256(raw), new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString()),
+  ]);
+  return json({ ok: true, token: raw }, 201);
+}
+async function cancelInvite(env, u, id) {
+  if (u.role !== "manager") return json({ error: "forbidden" }, 403);
+  await env.DB.prepare("UPDATE invitations SET status = 'cancelled' WHERE id = ? AND home_id = ? AND status = 'pending'").bind(id, u.home_id).run();
+  return json({ ok: true });
+}
+async function setManager(req, env, u) {
+  if (u.role !== "manager") return json({ error: "forbidden" }, 403);
+  const b = await readJson(req);
+  const target = b && typeof b.person_id === "string"
+    ? await env.DB.prepare("SELECT id FROM people WHERE id = ? AND home_id = ?").bind(b.person_id, u.home_id).first() : null;
+  if (!target || target.id === u.id) return json({ error: "invalid_person" }, 400);
+  await env.DB.batch([
+    env.DB.prepare("UPDATE people SET role = 'member' WHERE id = ?").bind(u.id),
+    env.DB.prepare("UPDATE people SET role = 'manager' WHERE id = ?").bind(target.id),
+    env.DB.prepare("UPDATE homes SET manager_id = ? WHERE id = ?").bind(target.id, u.home_id),
+  ]);
+  return json({ ok: true });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -263,19 +343,25 @@ export default {
         const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
         return json({ email: u.email, role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
       }
-      if (p === "/api/locations" || p === "/api/products" || p === "/api/inventory" || /^\/api\/(batches|products\/[0-9a-f-]{36}\/use|batches\/[0-9a-f-]{36}\/discard)$/.test(p)) {
+      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager"].includes(p) || /^\/api\/(batches|products\/[0-9a-f-]{36}\/use|batches\/[0-9a-f-]{36}\/discard|invitations\/[0-9a-f-]{36}\/cancel)$/.test(p)) {
         const u = await currentUser(request, env);
         if (!u) return json({ error: "unauthorized" }, 401);
         if (request.method === "GET") {
           if (p === "/api/locations") return await listLocations(env, u);
           if (p === "/api/products") return await listProducts(env, u);
           if (p === "/api/inventory") return await listInventory(env, u);
+          if (p === "/api/home") return await homeInfo(env, u);
+          if (p === "/api/lookup") return await lookup(env, u, url.searchParams.get("code") || "");
         } else if (request.method === "POST") {
           const origin = request.headers.get("origin");
           if (origin && new URL(origin).host !== url.host) return json({ error: "forbidden" }, 403);
           if (p === "/api/batches") return await addBatch(request, env, u);
+          if (p === "/api/invitations") return await createInvite(request, env, u);
+          if (p === "/api/home/manager") return await setManager(request, env, u);
           let m = p.match(/^\/api\/products\/([0-9a-f-]{36})\/use$/);
           if (m) return await useProduct(request, env, u, m[1]);
+          m = p.match(/^\/api\/invitations\/([0-9a-f-]{36})\/cancel$/);
+          if (m) return await cancelInvite(env, u, m[1]);
           m = p.match(/^\/api\/batches\/([0-9a-f-]{36})\/discard$/);
           if (m) return await discardBatch(env, u, m[1]);
         }

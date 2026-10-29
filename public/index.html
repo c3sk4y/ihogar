@@ -55,6 +55,15 @@
   .nav button { flex:1; border:0; background:#fff; color:var(--muted); font:500 11px "Noto Sans",sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border-top:3px solid transparent; cursor:pointer; }
   .nav button.on { color:var(--blue); font-weight:700; border-top-color:var(--blue); }
   .nav svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  #scan { position:fixed; inset:0; background:var(--ink); z-index:20; display:flex; flex-direction:column; }
+  #scan[hidden] { display:none; }
+  #scan video { flex:1; width:100%; min-height:0; object-fit:cover; }
+  .frame { position:absolute; left:12%; right:12%; top:28%; height:30%; border:3px solid #fff; border-radius:14px; pointer-events:none; }
+  .sbar { padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px)); color:#fff; background:var(--ink); }
+  .sbar .btn { background:#fff; color:var(--ink); margin-top:12px; }
+  .mem { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .av { width:40px; height:40px; border-radius:50%; background:var(--blue); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; }
+  .link { word-break:break-all; font-size:13px; font-weight:500; padding:10px 12px; border:1.5px dashed var(--blue); border-radius:12px; margin:8px 0; }
 </style>
 </head>
 <body>
@@ -62,6 +71,8 @@
   <div class="lang"><button id="es" aria-label="Español">ES</button><button id="en" aria-label="English">EN</button></div></div>
 <main id="app"></main>
 <nav class="nav" id="nav"></nav>
+<div id="scan" hidden><video id="scan_v" playsinline muted></video><div class="frame"></div>
+  <div class="sbar"><div id="scan_hint" style="font-weight:700"></div><div id="scan_err" style="margin-top:6px;font-size:13px"></div><button class="btn" id="scan_close"></button></div></div>
 <script>
 const SITE_KEY = "0x4AAAAAAFrhgjVPdQ5D-xno";
 const T = {
@@ -82,14 +93,18 @@ const T = {
     use:"Usar", use_first:"Usar primero", confirm:"Confirmar", cancel:"Cancelar", discard:"Descartar", discard_q:"\u00bfDescartar este lote como merma?",
     qty_use:"Cantidad a usar", fifo_use:"Se descuenta del lote que vence primero.", low_t:"Stock bajo", no_exp:"Sin caducidad", exp_today:"Vence hoy",
     exp_in:(n)=>"Vence en "+n+(n===1?" d\u00eda":" d\u00edas"), exp_ago:(n)=>"Vencido hace "+n+(n===1?" d\u00eda":" d\u00edas"), exp_on:(d)=>"Vence "+d,
-    next:"Siguiente: lectura de c\u00f3digo de barras, invitaciones y traspaso de gestor.",
+    scan:"Escanear c\u00f3digo de barras", scan_hint:"Apunta al c\u00f3digo de barras", scan_close:"Cerrar", scan_noperm:"No se pudo usar la c\u00e1mara. Revisa el permiso del navegador.", scan_fail:"No se pudo iniciar el lector. Ingresa el c\u00f3digo a mano.",
+    look_home:"Producto conocido en tu hogar.", look_off:"Datos de Open Food Facts. Rev\u00edsalos antes de guardar.", look_none:"No encontrado. Completa los datos a mano.",
+    invited:"Te invitaron a un hogar. Usa el mismo correo de la invitaci\u00f3n.", invite_t:"Invitar a una persona", invite_btn:"Crear invitaci\u00f3n", invite_note:"Comparte este enlace con la persona. Vence en 7 d\u00edas.",
+    copy:"Copiar enlace", copied:"Enlace copiado.", pending:"Invitaciones pendientes", make_mgr:"Hacer gestor", mgr_q:"\u00bfTraspasar el rol de gestor a esta persona?", full:"El hogar est\u00e1 completo.",
     e:{ invalid_credentials:"Correo o contrase\u00f1a incorrectos. Te quedan {n} intentos.", locked:"Acceso bloqueado. Intenta de nuevo en {m} minutos.",
         captcha:"Completa la verificaci\u00f3n de seguridad.", email_in_use:"Este correo ya tiene una cuenta.", weak_password:"La contrase\u00f1a debe tener al menos 10 caracteres.",
         invalid_email:"Escribe un correo v\u00e1lido.", invalid_home:"Escribe un nombre para el hogar (hasta 60 caracteres).", network:"Sin conexi\u00f3n. Intenta de nuevo.",
         server:"Error del servidor. Intenta de nuevo.", server_config:"Falta configurar el servidor.",
         invalid_name:"Escribe un nombre (hasta 80 caracteres).", invalid_quantity:"La cantidad debe ser mayor que 0.", invalid_date:"Revisa las fechas.",
         expiry_required:"Alimentos y remedios necesitan fecha de caducidad.", invalid_barcode:"El c\u00f3digo de barras debe tener de 6 a 14 d\u00edgitos.",
-        invalid_location:"Elige una ubicaci\u00f3n.", insufficient:"No hay suficiente cantidad. Disponible: {n}." }
+        invalid_location:"Elige una ubicaci\u00f3n.", insufficient:"No hay suficiente cantidad. Disponible: {n}.",
+        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"Solo el gestor puede hacer esto.", invalid_person:"Persona no v\u00e1lida." }
   },
   en: {
     login:"Sign in", register:"Create account", email:"Email", password:"Password", home:"Home name",
@@ -108,14 +123,18 @@ const T = {
     use:"Use", use_first:"Use first", confirm:"Confirm", cancel:"Cancel", discard:"Discard", discard_q:"Discard this batch as waste?",
     qty_use:"Quantity to use", fifo_use:"Deducted from the batch that expires first.", low_t:"Low stock", no_exp:"No expiry date", exp_today:"Expires today",
     exp_in:(n)=>"Expires in "+n+(n===1?" day":" days"), exp_ago:(n)=>"Expired "+n+(n===1?" day":" days")+" ago", exp_on:(d)=>"Expires "+d,
-    next:"Next: barcode scanning, invitations and manager handover.",
+    scan:"Scan barcode", scan_hint:"Point at the barcode", scan_close:"Close", scan_noperm:"Could not use the camera. Check the browser permission.", scan_fail:"Could not start the reader. Enter the code by hand.",
+    look_home:"Known product in your home.", look_off:"Data from Open Food Facts. Review before saving.", look_none:"Not found. Fill in the details by hand.",
+    invited:"You were invited to a home. Use the same email as the invitation.", invite_t:"Invite a person", invite_btn:"Create invitation", invite_note:"Share this link with the person. It expires in 7 days.",
+    copy:"Copy link", copied:"Link copied.", pending:"Pending invitations", make_mgr:"Make manager", mgr_q:"Hand the manager role to this person?", full:"The home is full.",
     e:{ invalid_credentials:"Incorrect email or password. {n} attempts left.", locked:"Access locked. Try again in {m} minutes.",
         captcha:"Complete the security check.", email_in_use:"This email already has an account.", weak_password:"Password must be at least 10 characters.",
         invalid_email:"Enter a valid email.", invalid_home:"Enter a home name (up to 60 characters).", network:"No connection. Try again.",
         server:"Server error. Try again.", server_config:"Server is not configured.",
         invalid_name:"Enter a name (up to 80 characters).", invalid_quantity:"Quantity must be greater than 0.", invalid_date:"Check the dates.",
         expiry_required:"Food and medicines need an expiry date.", invalid_barcode:"Barcode must have 6 to 14 digits.",
-        invalid_location:"Choose a location.", insufficient:"Not enough quantity. Available: {n}." }
+        invalid_location:"Choose a location.", insufficient:"Not enough quantity. Available: {n}.",
+        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"Only the manager can do this.", invalid_person:"Invalid person." }
   }
 };
 const pad = (n) => String(n).padStart(2, "0");
@@ -130,7 +149,7 @@ const ICON = {
   home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7M6 10v10h12V10"/></svg>'
 };
 let lang = "es", mode = "login", user = undefined, token = "", err = "", busy = false, vals = { email:"", password:"", home:"" };
-let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, actErr = "", addMsg = "", addErr = "";
+let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, actErr = "", addMsg = "", addErr = "", lookupMsg = "", hm = null, invLink = "", homeErr = "", homeMsg = "", inviteToken = "";
 let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"" };
 const app = document.getElementById("app"), nav = document.getElementById("nav");
 
@@ -150,10 +169,11 @@ async function get(path) {
   return { ok: r.ok, d };
 }
 async function loadData() {
-  const [l, p, i] = await Promise.all([get("/api/locations"), get("/api/products"), get("/api/inventory")]);
+  const [l, p, i, hh] = await Promise.all([get("/api/locations"), get("/api/products"), get("/api/inventory"), get("/api/home")]);
   if (l.ok) locs = l.d.locations;
   if (p.ok) prods = p.d.products;
   if (i.ok) inv = i.d.items;
+  if (hh.ok) hm = hh.d;
   if (!form.location_id && locs.length) { const pa = locs.find((x) => x.name === "pantry"); form.location_id = (pa || locs[0]).id; }
 }
 async function loadMe() {
@@ -176,16 +196,16 @@ function accessView() {
   app.innerHTML = '<h1>' + (reg ? t.register : t.login) + '</h1>' +
     '<div class="tabs"><button class="tab ' + (reg ? "" : "on") + '" id="tl">' + t.login + '</button><button class="tab ' + (reg ? "on" : "") + '" id="tr">' + t.register + '</button></div>' +
     '<div class="f"><label class="lbl" for="em">' + t.email + '</label><input id="em" type="email" autocomplete="email" value="' + esc(vals.email) + '"></div>' +
-    (reg ? '<div class="f"><label class="lbl" for="hm">' + t.home + '</label><input id="hm" maxlength="60" value="' + esc(vals.home) + '"></div>' : "") +
+    (reg && !inviteToken ? '<div class="f"><label class="lbl" for="hm">' + t.home + '</label><input id="hm" maxlength="60" value="' + esc(vals.home) + '"></div>' : "") +
     '<div class="f"><label class="lbl" for="pw">' + t.password + '</label><input id="pw" type="password" autocomplete="' + (reg ? "new-password" : "current-password") + '" value="' + esc(vals.password) + '"></div>' +
     (err ? '<p class="err" role="alert">' + esc(err) + "</p>" : "") +
     '<div id="cf"></div><button class="btn p" id="go"' + (busy ? " disabled" : "") + ">" + (busy ? t.wait : (reg ? t.register : t.login)) + "</button>" +
-    '<p class="t">' + (reg ? t.first : t.rules) + "</p>";
+    '<p class="t">' + (reg ? (inviteToken ? t.invited : t.first) : t.rules) + "</p>";
   document.getElementById("tl").onclick = () => { mode = "login"; err = ""; render(); };
   document.getElementById("tr").onclick = () => { mode = "register"; err = ""; render(); };
   document.getElementById("em").oninput = (e) => { vals.email = e.target.value; };
   document.getElementById("pw").oninput = (e) => { vals.password = e.target.value; };
-  if (reg) document.getElementById("hm").oninput = (e) => { vals.home = e.target.value; };
+  if (reg && !inviteToken) document.getElementById("hm").oninput = (e) => { vals.home = e.target.value; };
   document.getElementById("go").onclick = submit;
   mountCaptcha();
 }
@@ -235,7 +255,7 @@ function invView() {
 }
 function addView() {
   const t = T[lang], req = form.category === "food" || form.category === "medicine";
-  return '<h1>' + t.add_title + '</h1>' +
+  return '<h1>' + t.add_title + '</h1><button class="btn s" data-a="scan" style="margin-bottom:12px">' + t.scan + '</button>' + (lookupMsg ? '<p class="t" style="margin:0 0 12px">' + esc(lookupMsg) + '</p>' : "") +
     '<div class="f"><label class="lbl" for="f_name">' + t.f_name + '</label><input id="f_name" data-f="name" list="plist" maxlength="80" autocomplete="off" value="' + esc(form.name) + '"></div>' +
     '<datalist id="plist">' + prods.map((p) => '<option value="' + esc(p.name) + '"></option>').join("") + "</datalist>" +
     '<div class="grid">' +
@@ -251,10 +271,27 @@ function addView() {
     '<button class="btn p" data-a="save"' + (busy ? " disabled" : "") + ">" + (busy ? t.wait : t.save) + "</button>";
 }
 function homeView() {
-  const t = T[lang], role = user.role === "manager" ? t.role_manager : t.role_member;
-  return '<h1>' + esc(user.home.name) + '</h1><div class="card"><div class="row"><span class="dot"></span><span class="val">' + esc(user.email) + '</span></div>' +
-    '<div class="t">' + role + " \u00b7 " + t.members + " " + user.home.members + " " + t.of + " " + user.home.max + '</div></div>' +
-    '<div class="t" style="margin:0 0 16px">' + t.next + '</div><button class="btn s" data-a="out">' + t.out + "</button>";
+  const t = T[lang], mine = user.role === "manager";
+  const mem = hm ? hm.members : [], pend = hm ? hm.invitations : [], max = user.home.max;
+  let html = '<h1>' + esc(user.home.name) + '</h1><div class="t" style="margin:-8px 0 8px">' + t.members + " " + mem.length + " " + t.of + " " + max + "</div>";
+  mem.forEach((m) => {
+    html += '<div class="mem"><div class="av">' + esc(m.email[0].toUpperCase()) + '</div><div style="flex:1;min-width:0"><div class="val" style="overflow:hidden;text-overflow:ellipsis">' + esc(m.email) + '</div><div class="t" style="margin:0">' + (m.role === "manager" ? t.role_manager : t.role_member) + "</div></div>" +
+      (mine && hm && m.id !== hm.me ? '<button class="mini" data-a="make_mgr" data-p="' + m.id + '">' + t.make_mgr + "</button>" : "") + "</div>";
+  });
+  if (mine) {
+    if (pend.length) {
+      html += '<div class="t" style="margin:16px 0 0;font-weight:500">' + t.pending + "</div>";
+      pend.forEach((p) => { html += '<div class="mem"><div class="val" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:500">' + esc(p.email) + '</div><button class="mini" data-a="inv_cancel" data-b="' + p.id + '">' + t.cancel + "</button></div>"; });
+    }
+    if (mem.length + pend.length < max) {
+      html += '<div class="card" style="margin-top:16px"><div class="val" style="margin-bottom:8px">' + t.invite_t + '</div><label class="lbl" for="inv_email">' + t.email + '</label><input id="inv_email" type="email" autocomplete="off">' +
+        '<button class="btn p" style="margin-top:12px" data-a="invite">' + t.invite_btn + "</button></div>";
+    }
+    if (invLink) html += '<div class="t" style="margin:0">' + t.invite_note + '</div><div class="link">' + esc(invLink) + '</div><button class="btn s" data-a="copy">' + t.copy + "</button>";
+    if (homeMsg) html += '<p class="ok" style="margin-top:12px"><span class="dot"></span>' + esc(homeMsg) + "</p>";
+    if (homeErr) html += '<p class="err" role="alert" style="margin-top:12px">' + esc(homeErr) + "</p>";
+  }
+  return html + '<div style="height:24px"></div><button class="btn s" data-a="out">' + t.out + "</button>";
 }
 function render() {
   const t = T[lang];
@@ -269,11 +306,11 @@ function render() {
 async function submit() {
   if (busy) return;
   const body = { email: vals.email, password: vals.password, token };
-  if (mode === "register") body.home_name = vals.home;
+  if (mode === "register") { body.home_name = vals.home; if (inviteToken) body.invite = inviteToken; }
   busy = true; err = ""; render();
   try {
     const { ok, d } = await post(mode === "register" ? "/api/register" : "/api/login", body);
-    if (ok) { vals.password = ""; busy = false; tab = "inv"; await loadMe(); return; }
+    if (ok) { vals.password = ""; busy = false; tab = "inv"; inviteToken = ""; await loadMe(); return; }
     err = msg(d.error, d);
   } catch (e) { err = msg("network"); }
   busy = false; render();
@@ -291,8 +328,71 @@ async function saveBatch() {
   } catch (e) { addErr = msg("network"); }
   busy = false; render(); window.scrollTo(0, 0);
 }
+let stream = null, timer = null, zr = null, found = false;
+function stopScan() {
+  if (timer) { clearInterval(timer); timer = null; }
+  if (zr) { try { zr.reset(); } catch (e) {} zr = null; }
+  if (stream) { stream.getTracks().forEach((x) => x.stop()); stream = null; }
+  const v = document.getElementById("scan_v"); v.srcObject = null;
+  document.getElementById("scan").hidden = true;
+}
+async function onCode(code) {
+  if (found) return;
+  found = true; stopScan();
+  form.barcode = code; lookupMsg = "";
+  const t = T[lang];
+  try {
+    const r = await get("/api/lookup?code=" + code);
+    if (r.ok && r.d.found === "home") {
+      const p = r.d.product;
+      form.name = p.name; form.category = p.category || form.category; form.unit = p.unit; form.min_stock = String(p.min_stock || 0); lookupMsg = t.look_home;
+    } else if (r.ok && r.d.found === "off") {
+      form.name = r.d.product.name + (r.d.product.brand ? " - " + r.d.product.brand : ""); form.category = "food"; lookupMsg = t.look_off;
+    } else lookupMsg = t.look_none;
+  } catch (e) { lookupMsg = t.look_none; }
+  render();
+}
+function loadZXing() {
+  return new Promise((ok, ko) => {
+    if (window.ZXing) return ok();
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"; s.onload = ok; s.onerror = ko; document.head.appendChild(s);
+  });
+}
+async function startScan() {
+  const t = T[lang], v = document.getElementById("scan_v"), er = document.getElementById("scan_err");
+  found = false; er.textContent = "";
+  document.getElementById("scan_hint").textContent = t.scan_hint;
+  document.getElementById("scan_close").textContent = t.scan_close;
+  document.getElementById("scan").hidden = false;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { er.textContent = t.scan_noperm; return; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+    v.srcObject = stream; await v.play();
+  } catch (e) { er.textContent = t.scan_noperm; return; }
+  let det = null;
+  try {
+    if ("BarcodeDetector" in window) {
+      const f = (await BarcodeDetector.getSupportedFormats()).filter((x) => ["ean_13", "ean_8", "upc_a", "upc_e"].includes(x));
+      if (f.length) det = new BarcodeDetector({ formats: f });
+    }
+  } catch (e) { det = null; }
+  if (det) {
+    timer = setInterval(async () => {
+      try { const c = await det.detect(v); const code = c[0] && c[0].rawValue; if (code && /^\d{6,14}$/.test(code)) onCode(code); } catch (e) {}
+    }, 250);
+    return;
+  }
+  try {
+    await loadZXing();
+    stream.getTracks().forEach((x) => x.stop()); stream = null;
+    zr = new ZXing.BrowserMultiFormatReader();
+    zr.decodeFromVideoDevice(undefined, "scan_v", (res) => { if (res) { const code = res.getText(); if (/^\d{6,14}$/.test(code)) onCode(code); } });
+  } catch (e) { er.textContent = t.scan_fail; }
+}
+document.getElementById("scan_close").onclick = stopScan;
 const actions = {
-  tab: (d) => { tab = d.t; act = null; addMsg = ""; addErr = ""; render(); },
+  tab: (d) => { tab = d.t; act = null; addMsg = ""; addErr = ""; homeErr = ""; homeMsg = ""; render(); },
   filter: (d) => { filter = d.t; act = null; render(); },
   use_open: (d) => { act = { kind:"use", bid:d.b }; actErr = ""; render(); },
   disc_open: (d) => { act = { kind:"disc", bid:d.b }; render(); },
@@ -305,6 +405,22 @@ const actions = {
   },
   disc_ok: async (d) => { await post("/api/batches/" + d.b + "/discard", {}); act = null; await loadData(); render(); },
   save: saveBatch,
+  scan: startScan,
+  invite: async () => {
+    homeErr = ""; homeMsg = "";
+    const r = await post("/api/invitations", { email: document.getElementById("inv_email").value });
+    if (r.ok) { invLink = location.origin + "/#join=" + r.d.token; await loadData(); } else homeErr = msg(r.d.error, r.d);
+    render();
+  },
+  copy: async () => { try { await navigator.clipboard.writeText(invLink); homeMsg = T[lang].copied; } catch (e) {} render(); },
+  inv_cancel: async (d) => { await post("/api/invitations/" + d.b + "/cancel", {}); invLink = ""; await loadData(); render(); },
+  make_mgr: async (d) => {
+    if (!confirm(T[lang].mgr_q)) return;
+    homeErr = ""; homeMsg = "";
+    const r = await post("/api/home/manager", { person_id: d.p });
+    if (r.ok) { invLink = ""; await loadMe(); return; }
+    homeErr = msg(r.d.error, r.d); render();
+  },
   out: async () => { await post("/api/logout", {}); user = null; vals.password = ""; inv = []; render(); }
 };
 document.addEventListener("click", (e) => {
@@ -332,6 +448,8 @@ document.addEventListener("change", (e) => {
 });
 document.getElementById("es").onclick = () => { lang = "es"; render(); };
 document.getElementById("en").onclick = () => { lang = "en"; render(); };
+const jm = location.hash.match(/^#join=([\w-]+)$/);
+if (jm) { inviteToken = jm[1]; mode = "register"; history.replaceState(null, "", location.pathname); }
 render(); loadMe();
 </script>
 </body>
