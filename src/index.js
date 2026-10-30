@@ -215,7 +215,7 @@ async function listProducts(env, u) {
 }
 async function listInventory(env, u) {
   const r = await env.DB.prepare(
-    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, p.pack_size, p.pack_label, (p.photo IS NOT NULL) AS has_photo, b.initial_quantity, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, o.email AS owner, " +
+    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, p.barcode, b.location_id, p.pack_size, p.pack_label, (p.photo IS NOT NULL) AS has_photo, b.initial_quantity, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, o.email AS owner, " +
     "(SELECT SUM(b2.quantity) FROM batches b2 WHERE b2.product_id = p.id AND b2.status = 'active') AS total " +
     "FROM batches b JOIN products p ON p.id = b.product_id LEFT JOIN locations l ON l.id = b.location_id LEFT JOIN people o ON o.id = b.owner_id " +
     "WHERE p.home_id = ? AND b.status = 'active' " + FIFO
@@ -280,6 +280,90 @@ async function deleteBatch(env, u, bid) {
       env.DB.prepare("DELETE FROM products WHERE id = ? AND NOT EXISTS (SELECT 1 FROM batches WHERE product_id = ?)").bind(r.product_id, r.product_id),
     ]);
   } catch (e) { return json({ error: "in_use" }, 409); }
+  return json({ ok: true });
+}
+const DEFAULT_LABELS = {
+  kitchen: ["cocina", "kitchen"], pantry: ["despensa", "pantry"], fridge: ["refrigerador", "refrigerator", "refri", "fridge", "nevera"],
+  bathroom: ["ba\u00f1o", "bano", "bathroom"], medicine: ["botiqu\u00edn", "botiquin", "medicine cabinet"], storage: ["bodega", "storage room", "storage"],
+};
+function canonLoc(name) {
+  const l = name.toLowerCase();
+  for (const k in DEFAULT_LABELS) if (DEFAULT_LABELS[k].includes(l)) return k;
+  return name;
+}
+async function locName(req) {
+  const b = await readJson(req);
+  const n = b && typeof b.name === "string" ? b.name.trim() : "";
+  return n.length >= 1 && n.length <= 40 ? canonLoc(n) : null;
+}
+async function createLocation(req, env, u) {
+  const n = await locName(req);
+  if (!n) return json({ error: "invalid_location_name" }, 400);
+  if (await env.DB.prepare("SELECT id FROM locations WHERE home_id = ? AND lower(name) = lower(?)").bind(u.home_id, n).first()) return json({ error: "location_exists" }, 409);
+  const id = crypto.randomUUID();
+  await env.DB.prepare("INSERT INTO locations (id, home_id, name) VALUES (?, ?, ?)").bind(id, u.home_id, n).run();
+  return json({ ok: true, id }, 201);
+}
+async function renameLocation(req, env, u, id) {
+  if (u.role !== "manager") return json({ error: "forbidden" }, 403);
+  const n = await locName(req);
+  if (!n) return json({ error: "invalid_location_name" }, 400);
+  if (await env.DB.prepare("SELECT id FROM locations WHERE home_id = ? AND id <> ? AND lower(name) = lower(?)").bind(u.home_id, id, n).first()) return json({ error: "location_exists" }, 409);
+  const r = await env.DB.prepare("UPDATE locations SET name = ? WHERE id = ? AND home_id = ?").bind(n, id, u.home_id).run();
+  if (!r.meta.changes) return json({ error: "not_found" }, 404);
+  return json({ ok: true });
+}
+async function deleteLocation(env, u, id) {
+  if (u.role !== "manager") return json({ error: "forbidden" }, 403);
+  const l = await env.DB.prepare("SELECT id FROM locations WHERE id = ? AND home_id = ?").bind(id, u.home_id).first();
+  if (!l) return json({ error: "not_found" }, 404);
+  const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM batches WHERE location_id = ? AND status = 'active'").bind(id).first();
+  if (c.n > 0) return json({ error: "location_in_use" }, 409);
+  await env.DB.batch([
+    env.DB.prepare("UPDATE batches SET location_id = NULL WHERE location_id = ?").bind(id),
+    env.DB.prepare("DELETE FROM locations WHERE id = ? AND home_id = ?").bind(id, u.home_id),
+  ]);
+  return json({ ok: true });
+}
+async function editBatch(req, env, u, bid) {
+  const r = await env.DB.prepare("SELECT b.id, b.owner_id, b.quantity, b.initial_quantity, b.product_id FROM batches b JOIN products p ON p.id = b.product_id WHERE b.id = ? AND p.home_id = ? AND b.status = 'active'").bind(bid, u.home_id).first();
+  if (!r) return json({ error: "not_found" }, 404);
+  if (u.role !== "manager" && r.owner_id !== u.id) return json({ error: "forbidden" }, 403);
+  const b = await readJson(req, 250000);
+  if (!b) return json({ error: "bad_request" }, 400);
+  const name = typeof b.name === "string" ? b.name.trim() : "";
+  if (name.length < 1 || name.length > 80) return json({ error: "invalid_name" }, 400);
+  if (!CATS.includes(b.category)) return json({ error: "invalid_category" }, 400);
+  if (!UNITS.includes(b.unit)) return json({ error: "invalid_unit" }, 400);
+  const qty = Number(b.quantity);
+  if (!(qty > 0 && qty <= 1000000)) return json({ error: "invalid_quantity" }, 400);
+  const packLabel = b.pack_label ? String(b.pack_label) : null;
+  if (packLabel && !PACKS.includes(packLabel)) return json({ error: "invalid_pack" }, 400);
+  const packSize = b.pack_size ? Number(b.pack_size) : null;
+  if (packSize !== null && !(packSize > 0 && packSize <= 100000)) return json({ error: "invalid_pack" }, 400);
+  const min = Number(b.min_stock || 0);
+  if (!(min >= 0 && min <= 1000000)) return json({ error: "invalid_quantity" }, 400);
+  if (!isDate(b.purchase_date)) return json({ error: "invalid_date" }, 400);
+  const exp = b.expiry_date ? b.expiry_date : null;
+  if (exp && !isDate(exp)) return json({ error: "invalid_date" }, 400);
+  if ((b.category === "food" || b.category === "medicine") && !exp) return json({ error: "expiry_required" }, 400);
+  const barcode = typeof b.barcode === "string" && b.barcode.trim() ? b.barcode.trim() : null;
+  if (barcode && !/^\d{6,14}$/.test(barcode)) return json({ error: "invalid_barcode" }, 400);
+  if (barcode && (await env.DB.prepare("SELECT id FROM products WHERE home_id = ? AND id <> ? AND substr('00000000000000' || barcode, -14) = ?").bind(u.home_id, r.product_id, pad14(barcode)).first())) return json({ error: "barcode_in_use" }, 409);
+  const loc = await env.DB.prepare("SELECT id FROM locations WHERE id = ? AND home_id = ?").bind(String(b.location_id || ""), u.home_id).first();
+  if (!loc) return json({ error: "invalid_location" }, 400);
+  if (b.photo && !validPhoto(b.photo)) return json({ error: "invalid_photo" }, 400);
+  const initial = Math.max(r.initial_quantity || r.quantity, qty);
+  const stmts = [
+    env.DB.prepare("UPDATE products SET name = ?, category = ?, unit = ?, barcode = ?, min_stock = ?, pack_size = ?, pack_label = ? WHERE id = ?").bind(name, b.category, b.unit, barcode, min, packSize, packLabel, r.product_id),
+    env.DB.prepare("UPDATE batches SET location_id = ?, quantity = ?, initial_quantity = ?, purchase_date = ?, expiry_date = ? WHERE id = ?").bind(loc.id, qty, initial, b.purchase_date, exp, bid),
+  ];
+  if (b.photo) stmts.push(env.DB.prepare("UPDATE products SET photo = ? WHERE id = ?").bind(b.photo, r.product_id));
+  if (Math.abs(qty - r.quantity) > 1e-9) stmts.push(env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id, note) VALUES (?, ?, 'adjust', ?, ?, 'edit')").bind(crypto.randomUUID(), bid, Math.round((qty - r.quantity) * 1e6) / 1e6, u.id));
+  try { await env.DB.batch(stmts); } catch (e) {
+    if (/UNIQUE/i.test(String(e.message))) return json({ error: "barcode_in_use" }, 409);
+    throw e;
+  }
   return json({ ok: true });
 }
 async function useProduct(req, env, u, pid) {
@@ -402,7 +486,7 @@ export default {
         const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
         return json({ email: u.email, role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
       }
-      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager"].includes(p) || /^\/api\/(batches|products\/[0-9a-f-]{36}\/use|batches\/[0-9a-f-]{36}\/discard|delete|products\/[0-9a-f-]{36}\/photo|invitations\/[0-9a-f-]{36}\/cancel)$/.test(p)) {
+      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
         const u = await currentUser(request, env);
         if (!u) return json({ error: "unauthorized" }, 401);
         if (request.method === "GET") {
@@ -418,8 +502,15 @@ export default {
           if (origin && new URL(origin).host !== url.host) return json({ error: "forbidden" }, 403);
           if (p === "/api/batches") return await addBatch(request, env, u);
           if (p === "/api/invitations") return await createInvite(request, env, u);
+          if (p === "/api/locations") return await createLocation(request, env, u);
           if (p === "/api/home/manager") return await setManager(request, env, u);
-          let m = p.match(/^\/api\/products\/([0-9a-f-]{36})\/photo$/);
+          let m = p.match(/^\/api\/batches\/([0-9a-f-]{36})\/edit$/);
+          if (m) return await editBatch(request, env, u, m[1]);
+          m = p.match(/^\/api\/locations\/([0-9a-f-]{36})\/rename$/);
+          if (m) return await renameLocation(request, env, u, m[1]);
+          m = p.match(/^\/api\/locations\/([0-9a-f-]{36})\/delete$/);
+          if (m) return await deleteLocation(env, u, m[1]);
+          m = p.match(/^\/api\/products\/([0-9a-f-]{36})\/photo$/);
           if (m) return await setPhoto(request, env, u, m[1]);
           m = p.match(/^\/api\/products\/([0-9a-f-]{36})\/use$/);
           if (m) return await useProduct(request, env, u, m[1]);
