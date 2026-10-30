@@ -43,10 +43,10 @@ async function sha256(s) {
 const norm = (e) => (typeof e === "string" ? e.trim().toLowerCase() : "");
 const validEmail = (e) => e.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-async function readJson(req) {
+async function readJson(req, max = 4096) {
   if (!(req.headers.get("content-type") || "").includes("application/json")) return null;
   const text = await req.text();
-  if (text.length > 4096) return null;
+  if (text.length > max) return null;
   try { return JSON.parse(text); } catch { return null; }
 }
 
@@ -170,7 +170,37 @@ async function login(req, env, ip) {
 }
 
 const CATS = ["food", "cleaning", "supplies", "medicine"];
-const UNITS = ["unit", "kg", "g", "l", "ml", "dose"];
+const UNITS = ["unit", "kg", "g", "l", "ml", "dose", "sachet", "tablet"];
+const validPhoto = (p) => typeof p === "string" && p.length <= 160000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(p);
+async function fetchPhoto(url) {
+  if (!/^https:\/\/images\.openfoodfacts\.org\/[\w\/.\-]+$/.test(url)) return null;
+  try {
+    const r = await fetch(url, { headers: { "user-agent": "InventarioHogar/0.1" }, signal: AbortSignal.timeout(4000) });
+    if (!r.ok) return null;
+    const ct = (r.headers.get("content-type") || "").split(";")[0];
+    if (!/^image\/(jpeg|png|webp)$/.test(ct)) return null;
+    const buf = new Uint8Array(await r.arrayBuffer());
+    if (buf.length > 110000) return null;
+    let bin = "";
+    for (let i = 0; i < buf.length; i += 8192) bin += String.fromCharCode(...buf.subarray(i, i + 8192));
+    return "data:" + ct + ";base64," + btoa(bin);
+  } catch (e) { return null; }
+}
+async function getPhoto(env, u, pid) {
+  const r = await env.DB.prepare("SELECT photo FROM products WHERE id = ? AND home_id = ?").bind(pid, u.home_id).first();
+  const m = r && r.photo ? r.photo.match(/^data:(image\/[a-z]+);base64,(.+)$/) : null;
+  if (!m) return new Response(null, { status: 404 });
+  return new Response(Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0)), { headers: { "content-type": m[1], "cache-control": "private, max-age=300" } });
+}
+async function setPhoto(req, env, u, pid) {
+  const b = await readJson(req, 250000);
+  if (!b || !validPhoto(b.photo)) return json({ error: "invalid_photo" }, 400);
+  const r = await env.DB.prepare("UPDATE products SET photo = ? WHERE id = ? AND home_id = ?").bind(b.photo, pid, u.home_id).run();
+  if (!r.meta.changes) return json({ error: "not_found" }, 404);
+  return json({ ok: true });
+}
+const PACKS = ["box", "jar", "bottle", "pack", "can", "tube", "bag"];
+const pad14 = (c) => String(c).padStart(14, "0");
 const DEFAULT_LOCS = ["kitchen", "pantry", "fridge", "bathroom", "medicine", "storage"];
 const isDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s));
 const FIFO = "ORDER BY (b.expiry_date IS NULL), b.expiry_date, b.purchase_date, b.created_at";
@@ -180,12 +210,12 @@ async function listLocations(env, u) {
   return json({ locations: r.results });
 }
 async function listProducts(env, u) {
-  const r = await env.DB.prepare("SELECT id, name, category, unit, barcode, min_stock FROM products WHERE home_id = ? ORDER BY name").bind(u.home_id).all();
+  const r = await env.DB.prepare("SELECT id, name, category, unit, barcode, min_stock, pack_size, pack_label, (photo IS NOT NULL) AS has_photo FROM products WHERE home_id = ? ORDER BY name").bind(u.home_id).all();
   return json({ products: r.results });
 }
 async function listInventory(env, u) {
   const r = await env.DB.prepare(
-    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, o.email AS owner, " +
+    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, p.pack_size, p.pack_label, (p.photo IS NOT NULL) AS has_photo, b.initial_quantity, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, o.email AS owner, " +
     "(SELECT SUM(b2.quantity) FROM batches b2 WHERE b2.product_id = p.id AND b2.status = 'active') AS total " +
     "FROM batches b JOIN products p ON p.id = b.product_id LEFT JOIN locations l ON l.id = b.location_id LEFT JOIN people o ON o.id = b.owner_id " +
     "WHERE p.home_id = ? AND b.status = 'active' " + FIFO
@@ -193,16 +223,22 @@ async function listInventory(env, u) {
   return json({ items: r.results });
 }
 async function addBatch(req, env, u) {
-  const b = await readJson(req);
+  const b = await readJson(req, 250000);
   if (!b) return json({ error: "bad_request" }, 400);
   const name = typeof b.name === "string" ? b.name.trim() : "";
   if (name.length < 1 || name.length > 80) return json({ error: "invalid_name" }, 400);
   if (!CATS.includes(b.category)) return json({ error: "invalid_category" }, 400);
   if (!UNITS.includes(b.unit)) return json({ error: "invalid_unit" }, 400);
-  const qty = Number(b.quantity);
-  if (!(qty > 0 && qty <= 100000)) return json({ error: "invalid_quantity" }, 400);
+  const n = Number(b.quantity);
+  if (!(n > 0 && n <= 100000)) return json({ error: "invalid_quantity" }, 400);
+  const packLabel = b.pack_label ? String(b.pack_label) : null;
+  if (packLabel && !PACKS.includes(packLabel)) return json({ error: "invalid_pack" }, 400);
+  const packSize = b.pack_size ? Number(b.pack_size) : null;
+  if (packSize !== null && !(packSize > 0 && packSize <= 100000)) return json({ error: "invalid_pack" }, 400);
+  const qty = Math.round(n * (packSize || 1) * 1e6) / 1e6;
+  if (qty > 1000000) return json({ error: "invalid_quantity" }, 400);
   const min = Number(b.min_stock || 0);
-  if (!(min >= 0 && min <= 100000)) return json({ error: "invalid_quantity" }, 400);
+  if (!(min >= 0 && min <= 1000000)) return json({ error: "invalid_quantity" }, 400);
   if (!isDate(b.purchase_date)) return json({ error: "invalid_date" }, 400);
   const exp = b.expiry_date ? b.expiry_date : null;
   if (exp && !isDate(exp)) return json({ error: "invalid_date" }, 400);
@@ -211,21 +247,40 @@ async function addBatch(req, env, u) {
   if (barcode && !/^\d{6,14}$/.test(barcode)) return json({ error: "invalid_barcode" }, 400);
   const loc = await env.DB.prepare("SELECT id FROM locations WHERE id = ? AND home_id = ?").bind(String(b.location_id || ""), u.home_id).first();
   if (!loc) return json({ error: "invalid_location" }, 400);
+  let photo = null;
+  if (b.photo) { if (!validPhoto(b.photo)) return json({ error: "invalid_photo" }, 400); photo = b.photo; }
+  else if (typeof b.photo_url === "string" && b.photo_url) photo = await fetchPhoto(b.photo_url);
   const prod = barcode
-    ? await env.DB.prepare("SELECT id FROM products WHERE home_id = ? AND barcode = ?").bind(u.home_id, barcode).first()
-    : await env.DB.prepare("SELECT id FROM products WHERE home_id = ? AND barcode IS NULL AND lower(name) = lower(?) AND unit = ?").bind(u.home_id, name, b.unit).first();
+    ? await env.DB.prepare("SELECT id, (photo IS NOT NULL) AS hp FROM products WHERE home_id = ? AND substr('00000000000000' || barcode, -14) = ?").bind(u.home_id, pad14(barcode)).first()
+    : await env.DB.prepare("SELECT id, (photo IS NOT NULL) AS hp FROM products WHERE home_id = ? AND barcode IS NULL AND lower(name) = lower(?) AND unit = ?").bind(u.home_id, name, b.unit).first();
   const stmts = [];
   let pid;
-  if (prod) pid = prod.id;
-  else {
+  if (prod) {
+    pid = prod.id;
+    if (photo && (b.photo || !prod.hp)) stmts.push(env.DB.prepare("UPDATE products SET photo = ? WHERE id = ?").bind(photo, pid));
+    if (packSize || packLabel) stmts.push(env.DB.prepare("UPDATE products SET pack_size = ?, pack_label = ? WHERE id = ?").bind(packSize, packLabel, pid));
+  } else {
     pid = crypto.randomUUID();
-    stmts.push(env.DB.prepare("INSERT INTO products (id, home_id, name, category, barcode, unit, min_stock) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(pid, u.home_id, name, b.category, barcode, b.unit, min));
+    stmts.push(env.DB.prepare("INSERT INTO products (id, home_id, name, category, barcode, unit, min_stock, pack_size, pack_label, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(pid, u.home_id, name, b.category, barcode, b.unit, min, packSize, packLabel, photo));
   }
   const bid = crypto.randomUUID();
-  stmts.push(env.DB.prepare("INSERT INTO batches (id, product_id, location_id, owner_id, quantity, purchase_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(bid, pid, loc.id, u.id, qty, b.purchase_date, exp));
+  stmts.push(env.DB.prepare("INSERT INTO batches (id, product_id, location_id, owner_id, quantity, initial_quantity, purchase_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(bid, pid, loc.id, u.id, qty, qty, b.purchase_date, exp));
   stmts.push(env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id) VALUES (?, ?, 'in', ?, ?)").bind(crypto.randomUUID(), bid, qty, u.id));
   await env.DB.batch(stmts);
   return json({ ok: true, id: bid }, 201);
+}
+async function deleteBatch(env, u, bid) {
+  const r = await env.DB.prepare("SELECT b.id, b.owner_id, b.product_id FROM batches b JOIN products p ON p.id = b.product_id WHERE b.id = ? AND p.home_id = ?").bind(bid, u.home_id).first();
+  if (!r) return json({ error: "not_found" }, 404);
+  if (u.role !== "manager" && r.owner_id !== u.id) return json({ error: "forbidden" }, 403);
+  try {
+    await env.DB.batch([
+      env.DB.prepare("DELETE FROM movements WHERE batch_id = ?").bind(bid),
+      env.DB.prepare("DELETE FROM batches WHERE id = ?").bind(bid),
+      env.DB.prepare("DELETE FROM products WHERE id = ? AND NOT EXISTS (SELECT 1 FROM batches WHERE product_id = ?)").bind(r.product_id, r.product_id),
+    ]);
+  } catch (e) { return json({ error: "in_use" }, 409); }
+  return json({ ok: true });
 }
 async function useProduct(req, env, u, pid) {
   const b = await readJson(req);
@@ -261,10 +316,13 @@ async function discardBatch(env, u, bid) {
 
 async function lookup(env, u, code) {
   if (!/^\d{6,14}$/.test(code)) return json({ error: "invalid_barcode" }, 400);
-  const own = await env.DB.prepare("SELECT name, category, unit, min_stock FROM products WHERE home_id = ? AND barcode = ?").bind(u.home_id, code).first();
+  const own = await env.DB.prepare(
+    "SELECT p.id, (p.photo IS NOT NULL) AS has_photo, p.name, p.category, p.unit, p.min_stock, p.pack_size, p.pack_label, (SELECT b.location_id FROM batches b WHERE b.product_id = p.id ORDER BY b.created_at DESC LIMIT 1) AS location_id " +
+    "FROM products p WHERE p.home_id = ? AND substr('00000000000000' || p.barcode, -14) = ?"
+  ).bind(u.home_id, pad14(code)).first();
   if (own) return json({ found: "home", product: own });
   try {
-    const r = await fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands", {
+    const r = await fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands,image_front_small_url", {
       headers: { "user-agent": "InventarioHogar/0.1" },
       signal: AbortSignal.timeout(4000),
     });
@@ -272,7 +330,8 @@ async function lookup(env, u, code) {
       const j = await r.json();
       if (j.status === 1 && j.product && j.product.product_name) {
         const brand = j.product.brands ? String(j.product.brands).split(",")[0].trim().slice(0, 40) : "";
-        return json({ found: "off", product: { name: String(j.product.product_name).slice(0, 80), brand } });
+        const img = typeof j.product.image_front_small_url === "string" && j.product.image_front_small_url.startsWith("https://images.openfoodfacts.org/") ? j.product.image_front_small_url : "";
+        return json({ found: "off", product: { name: String(j.product.product_name).slice(0, 80), brand, image_url: img } });
       }
     }
   } catch (e) {}
@@ -343,13 +402,15 @@ export default {
         const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
         return json({ email: u.email, role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
       }
-      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager"].includes(p) || /^\/api\/(batches|products\/[0-9a-f-]{36}\/use|batches\/[0-9a-f-]{36}\/discard|invitations\/[0-9a-f-]{36}\/cancel)$/.test(p)) {
+      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager"].includes(p) || /^\/api\/(batches|products\/[0-9a-f-]{36}\/use|batches\/[0-9a-f-]{36}\/discard|delete|products\/[0-9a-f-]{36}\/photo|invitations\/[0-9a-f-]{36}\/cancel)$/.test(p)) {
         const u = await currentUser(request, env);
         if (!u) return json({ error: "unauthorized" }, 401);
         if (request.method === "GET") {
           if (p === "/api/locations") return await listLocations(env, u);
           if (p === "/api/products") return await listProducts(env, u);
           if (p === "/api/inventory") return await listInventory(env, u);
+          const mp = p.match(/^\/api\/products\/([0-9a-f-]{36})\/photo$/);
+          if (mp) return await getPhoto(env, u, mp[1]);
           if (p === "/api/home") return await homeInfo(env, u);
           if (p === "/api/lookup") return await lookup(env, u, url.searchParams.get("code") || "");
         } else if (request.method === "POST") {
@@ -358,10 +419,14 @@ export default {
           if (p === "/api/batches") return await addBatch(request, env, u);
           if (p === "/api/invitations") return await createInvite(request, env, u);
           if (p === "/api/home/manager") return await setManager(request, env, u);
-          let m = p.match(/^\/api\/products\/([0-9a-f-]{36})\/use$/);
+          let m = p.match(/^\/api\/products\/([0-9a-f-]{36})\/photo$/);
+          if (m) return await setPhoto(request, env, u, m[1]);
+          m = p.match(/^\/api\/products\/([0-9a-f-]{36})\/use$/);
           if (m) return await useProduct(request, env, u, m[1]);
           m = p.match(/^\/api\/invitations\/([0-9a-f-]{36})\/cancel$/);
           if (m) return await cancelInvite(env, u, m[1]);
+          m = p.match(/^\/api\/batches\/([0-9a-f-]{36})\/delete$/);
+          if (m) return await deleteBatch(env, u, m[1]);
           m = p.match(/^\/api\/batches\/([0-9a-f-]{36})\/discard$/);
           if (m) return await discardBatch(env, u, m[1]);
         }

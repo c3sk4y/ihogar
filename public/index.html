@@ -64,6 +64,8 @@
   .mem { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
   .av { width:40px; height:40px; border-radius:50%; background:var(--blue); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; }
   .link { word-break:break-all; font-size:13px; font-weight:500; padding:10px 12px; border:1.5px dashed var(--blue); border-radius:12px; margin:8px 0; }
+  .ph { width:48px; height:48px; border-radius:10px; object-fit:cover; border:1px solid var(--line); flex:none; align-self:center; }
+  .pv { width:96px; height:96px; border-radius:14px; object-fit:cover; border:1.5px solid var(--line); flex:none; background:#fff; }
 </style>
 </head>
 <body>
@@ -71,6 +73,8 @@
   <div class="lang"><button id="es" aria-label="Español">ES</button><button id="en" aria-label="English">EN</button></div></div>
 <main id="app"></main>
 <nav class="nav" id="nav"></nav>
+<input type="file" id="ph_cam" accept="image/*" capture="environment" hidden>
+<input type="file" id="ph_gal" accept="image/*" hidden>
 <div id="scan" hidden><video id="scan_v" playsinline muted></video><div class="frame"></div>
   <div class="sbar"><div id="scan_hint" style="font-weight:700"></div><div id="scan_err" style="margin-top:6px;font-size:13px"></div><button class="btn" id="scan_close"></button></div></div>
 <script>
@@ -84,9 +88,13 @@ const T = {
     nav:{ inv:"Inventario", add:"Agregar", home:"Hogar" },
     filters:{ all:"Todo", soon:"Por vencer", low:"Stock bajo", expired:"Vencidos" },
     cat:{ food:"Alimentos", cleaning:"Limpieza", supplies:"Insumos", medicine:"Remedios" },
-    unit:{ unit:"unidad", kg:"kg", g:"g", l:"litro", ml:"ml", dose:"dosis" },
+    unit:{ unit:"unid.", kg:"kg", g:"g", l:"litro(s)", ml:"ml", dose:"dosis", sachet:"bolsitas", tablet:"comprimidos" },
+    pack:{ box:"caja", jar:"tarro", bottle:"botella", pack:"paquete", can:"lata", tube:"tubo", bag:"bolsa" },
     loc:{ kitchen:"Cocina", pantry:"Despensa", fridge:"Refrigerador", bathroom:"Ba\u00f1o", medicine:"Botiqu\u00edn", storage:"Bodega" },
-    f_name:"Nombre", f_cat:"Categor\u00eda", f_qty:"Cantidad", f_unit:"Unidad", f_loc:"Ubicaci\u00f3n", f_buy:"Fecha de compra",
+    f_name:"Nombre", f_cat:"Categor\u00eda", f_qty:"Cantidad (envases o unidades)", f_unit:"Unidad del contenido", f_pack:"Envase", f_pack_none:"Sin envase", f_content:"Contenido por envase (opcional)",
+    pack_help:"Ejemplo: 1 caja de t\u00e9 con 50 bolsitas = cantidad 1, envase caja, contenido 50, unidad bolsitas. Un tarro de caf\u00e9 de 260 g = cantidad 1, envase tarro, contenido 260, unidad g.",
+    photo:"Foto de referencia", photo_take:"Tomar foto", photo_pick:"Elegir de galer\u00eda", photo_change:"Cambiar foto",
+    del:"Eliminar lote", del_q:"\u00bfEliminar este lote? Se borra sin registrar merma. \u00dasalo solo para corregir errores.", f_loc:"Ubicaci\u00f3n", f_buy:"Fecha de compra",
     f_exp:"Caducidad (opcional)", f_exp_req:"Caducidad (obligatoria)", f_min:"Stock m\u00ednimo (opcional)", f_bar:"C\u00f3digo de barras (opcional)",
     add_title:"Agregar producto", save:"Guardar en inventario", saved:"Guardado en el inventario.",
     inv_title:"Inventario", fifo:"Orden FIFO: lo que vence primero, arriba.", empty:"No hay productos todav\u00eda. Agrega el primero.",
@@ -104,7 +112,7 @@ const T = {
         invalid_name:"Escribe un nombre (hasta 80 caracteres).", invalid_quantity:"La cantidad debe ser mayor que 0.", invalid_date:"Revisa las fechas.",
         expiry_required:"Alimentos y remedios necesitan fecha de caducidad.", invalid_barcode:"El c\u00f3digo de barras debe tener de 6 a 14 d\u00edgitos.",
         invalid_location:"Elige una ubicaci\u00f3n.", insufficient:"No hay suficiente cantidad. Disponible: {n}.",
-        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"Solo el gestor puede hacer esto.", invalid_person:"Persona no v\u00e1lida." }
+        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"Solo el gestor puede hacer esto.", invalid_person:"Persona no v\u00e1lida.", invalid_pack:"Revisa el envase y su contenido.", in_use:"No se puede eliminar: est\u00e1 en uso.", invalid_photo:"No se pudo usar esa imagen." }
   },
   en: {
     login:"Sign in", register:"Create account", email:"Email", password:"Password", home:"Home name",
@@ -114,9 +122,13 @@ const T = {
     nav:{ inv:"Inventory", add:"Add", home:"Home" },
     filters:{ all:"All", soon:"Expiring", low:"Low stock", expired:"Expired" },
     cat:{ food:"Food", cleaning:"Cleaning", supplies:"Supplies", medicine:"Medicines" },
-    unit:{ unit:"unit", kg:"kg", g:"g", l:"liter", ml:"ml", dose:"dose" },
+    unit:{ unit:"units", kg:"kg", g:"g", l:"liter(s)", ml:"ml", dose:"doses", sachet:"sachets", tablet:"tablets" },
+    pack:{ box:"box", jar:"jar", bottle:"bottle", pack:"pack", can:"can", tube:"tube", bag:"bag" },
     loc:{ kitchen:"Kitchen", pantry:"Pantry", fridge:"Refrigerator", bathroom:"Bathroom", medicine:"Medicine cabinet", storage:"Storage room" },
-    f_name:"Name", f_cat:"Category", f_qty:"Quantity", f_unit:"Unit", f_loc:"Location", f_buy:"Purchase date",
+    f_name:"Name", f_cat:"Category", f_qty:"Quantity (packages or units)", f_unit:"Content unit", f_pack:"Package", f_pack_none:"No package", f_content:"Content per package (optional)",
+    pack_help:"Example: 1 box of tea with 50 sachets = quantity 1, package box, content 50, unit sachets. A 260 g coffee jar = quantity 1, package jar, content 260, unit g.",
+    photo:"Reference photo", photo_take:"Take photo", photo_pick:"Choose from gallery", photo_change:"Change photo",
+    del:"Delete batch", del_q:"Delete this batch? It is removed without recording waste. Use only to fix mistakes.", f_loc:"Location", f_buy:"Purchase date",
     f_exp:"Expiry date (optional)", f_exp_req:"Expiry date (required)", f_min:"Minimum stock (optional)", f_bar:"Barcode (optional)",
     add_title:"Add product", save:"Save to inventory", saved:"Saved to inventory.",
     inv_title:"Inventory", fifo:"FIFO order: what expires first, on top.", empty:"No products yet. Add the first one.",
@@ -134,7 +146,7 @@ const T = {
         invalid_name:"Enter a name (up to 80 characters).", invalid_quantity:"Quantity must be greater than 0.", invalid_date:"Check the dates.",
         expiry_required:"Food and medicines need an expiry date.", invalid_barcode:"Barcode must have 6 to 14 digits.",
         invalid_location:"Choose a location.", insufficient:"Not enough quantity. Available: {n}.",
-        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"Only the manager can do this.", invalid_person:"Invalid person." }
+        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"Only the manager can do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used." }
   }
 };
 const pad = (n) => String(n).padStart(2, "0");
@@ -150,7 +162,8 @@ const ICON = {
 };
 let lang = "es", mode = "login", user = undefined, token = "", err = "", busy = false, vals = { email:"", password:"", home:"" };
 let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, actErr = "", addMsg = "", addErr = "", lookupMsg = "", hm = null, invLink = "", homeErr = "", homeMsg = "", inviteToken = "";
-let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"" };
+let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"" };
+let photoPid = "", photoVer = {};
 const app = document.getElementById("app"), nav = document.getElementById("nav");
 
 function msg(code, d) {
@@ -236,18 +249,18 @@ function invView() {
     if (filter === "expired" && s.cls !== "expired") return;
     n++;
     const who = r.owner ? r.owner.split("@")[0] : "";
-    html += '<div class="item"><div class="bar" style="background:' + s.color + '"></div><div class="info"><div class="val">' + esc(r.name) + '</div>' +
-      '<div class="t" style="margin-top:2px">' + esc((t.loc[r.location] || r.location || "")) + " \u00b7 " + fmtQ(r.quantity) + " " + esc(t.unit[r.unit] || r.unit) + (who ? " \u00b7 " + esc(who) : "") + '</div>' +
+    html += '<div class="item"><div class="bar" style="background:' + s.color + '"></div>' + (r.has_photo ? '<img class="ph" loading="lazy" alt="" src="/api/products/' + r.product_id + '/photo?v=' + (photoVer[r.product_id] || 0) + '">' : '') + '<div class="info"><div class="val">' + esc(r.name) + '</div>' +
+      '<div class="t" style="margin-top:2px">' + esc((t.loc[r.location] || r.location || "")) + " \u00b7 " + fmtQ(r.quantity) + " " + esc(t.unit[r.unit] || r.unit) + (r.initial_quantity && Math.abs(r.initial_quantity - r.quantity) > 1e-9 ? " " + t.of + " " + fmtQ(r.initial_quantity) : "") + (r.pack_label && r.pack_size ? " \u00b7 " + esc(t.pack[r.pack_label] || "") + " " + fmtQ(r.pack_size) : "") + (who ? " \u00b7 " + esc(who) : "") + '</div>' +
       '<div class="x">' + esc(s.text) + '</div>' + (s.low ? '<div class="x">' + t.low_t + "</div>" : "") + '</div>' +
       '<div class="side">' + (firstOne ? '<span class="tag">' + t.use_first + "</span>" : "") +
       '<button class="mini" data-a="use_open" data-b="' + r.batch_id + '">' + t.use + "</button>" +
       (s.cls === "expired" ? '<button class="mini" style="color:var(--red);border-color:var(--red)" data-a="disc_open" data-b="' + r.batch_id + '">' + t.discard + "</button>" : "") + "</div></div>";
     if (act && act.bid === r.batch_id) {
       html += '<div class="panel">' + (act.kind === "use"
-        ? '<label class="lbl" for="uq">' + t.qty_use + '</label><input id="uq" type="number" inputmode="decimal" min="0" step="any" value="1"><div class="t" style="margin-top:6px">' + t.fifo_use + '</div>' +
+        ? '<label class="lbl" for="uq">' + t.qty_use + " (" + esc(t.unit[r.unit] || r.unit) + ')</label><input id="uq" type="number" inputmode="decimal" min="0" step="any" value="1"><div class="t" style="margin-top:6px">' + t.fifo_use + '</div>' +
           (actErr ? '<p class="err" style="margin:8px 0 0">' + esc(actErr) + "</p>" : "") +
-          '<div class="two"><button class="btn p" data-a="use_ok" data-p="' + r.product_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div>"
-        : '<div class="val">' + t.discard_q + '</div><div class="two"><button class="btn d" data-a="disc_ok" data-b="' + r.batch_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div>") + "</div>";
+          '<div class="two"><button class="btn p" data-a="use_ok" data-p="' + r.product_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div><button class=\"btn s\" style=\"margin-top:10px\" data-a=\"ph_inv\" data-p=\"" + r.product_id + "\">" + t.photo_change + "</button><button class=\"btn s\" style=\"color:var(--red);border-color:var(--red);margin-top:10px\" data-a=\"del_open\" data-b=\"" + r.batch_id + "\">" + t.del + "</button>"
+        : '<div class="val">' + (act.kind === "del" ? t.del_q : t.discard_q) + '</div><div class="two"><button class="btn d" data-a="' + (act.kind === "del" ? "del_ok" : "disc_ok") + '" data-b="' + r.batch_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div>") + "</div>";
     }
   });
   if (!n) html += '<p class="t">' + t.empty + "</p>";
@@ -256,17 +269,20 @@ function invView() {
 function addView() {
   const t = T[lang], req = form.category === "food" || form.category === "medicine";
   return '<h1>' + t.add_title + '</h1><button class="btn s" data-a="scan" style="margin-bottom:12px">' + t.scan + '</button>' + (lookupMsg ? '<p class="t" style="margin:0 0 12px">' + esc(lookupMsg) + '</p>' : "") +
+    (function () { const src = form.photo || form.photo_url || (form.photo_pid ? "/api/products/" + form.photo_pid + "/photo" : ""); return '<div class="f"><span class="lbl">' + t.photo + '</span><div class="row">' + (src ? '<img class="pv" alt="" src="' + esc(src) + '">' : '<div class="pv"></div>') + '<div style="flex:1;display:flex;flex-direction:column;gap:8px"><button class="mini" data-a="ph_cam">' + t.photo_take + '</button><button class="mini" data-a="ph_gal">' + t.photo_pick + '</button></div></div></div>'; })() +
     '<div class="f"><label class="lbl" for="f_name">' + t.f_name + '</label><input id="f_name" data-f="name" list="plist" maxlength="80" autocomplete="off" value="' + esc(form.name) + '"></div>' +
     '<datalist id="plist">' + prods.map((p) => '<option value="' + esc(p.name) + '"></option>').join("") + "</datalist>" +
     '<div class="grid">' +
     '<div class="f"><label class="lbl" for="f_category">' + t.f_cat + '</label><select id="f_category" data-f="category">' + opts(["food", "cleaning", "supplies", "medicine"], form.category, (v) => t.cat[v]) + "</select></div>" +
     '<div class="f"><label class="lbl" for="f_location_id">' + t.f_loc + '</label><select id="f_location_id" data-f="location_id">' + opts(locs.map((l) => l.id), form.location_id, (id) => { const l = locs.find((x) => x.id === id); return t.loc[l.name] || l.name; }) + "</select></div>" +
     '<div class="f"><label class="lbl" for="f_quantity">' + t.f_qty + '</label><input id="f_quantity" data-f="quantity" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.quantity) + '"></div>' +
-    '<div class="f"><label class="lbl" for="f_unit">' + t.f_unit + '</label><select id="f_unit" data-f="unit">' + opts(["unit", "kg", "g", "l", "ml", "dose"], form.unit, (v) => t.unit[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_unit">' + t.f_unit + '</label><select id="f_unit" data-f="unit">' + opts(["unit", "kg", "g", "l", "ml", "dose", "sachet", "tablet"], form.unit, (v) => t.unit[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_pack_label">' + t.f_pack + '</label><select id="f_pack_label" data-f="pack_label"><option value="">' + t.f_pack_none + "</option>" + opts(["box", "jar", "bottle", "pack", "can", "tube", "bag"], form.pack_label, (v) => t.pack[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_pack_size">' + t.f_content + '</label><input id="f_pack_size" data-f="pack_size" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.pack_size) + '"></div>' +
     '<div class="f"><label class="lbl" for="f_purchase_date">' + t.f_buy + '</label><input id="f_purchase_date" data-f="purchase_date" type="date" value="' + esc(form.purchase_date) + '"></div>' +
     '<div class="f"><label class="lbl" id="l_exp" for="f_expiry_date">' + (req ? t.f_exp_req : t.f_exp) + '</label><input id="f_expiry_date" data-f="expiry_date" type="date" value="' + esc(form.expiry_date) + '"></div>' +
     '<div class="f"><label class="lbl" for="f_min_stock">' + t.f_min + '</label><input id="f_min_stock" data-f="min_stock" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.min_stock) + '"></div>' +
-    '<div class="f"><label class="lbl" for="f_barcode">' + t.f_bar + '</label><input id="f_barcode" data-f="barcode" inputmode="numeric" maxlength="14" value="' + esc(form.barcode) + '"></div></div>' +
+    '<div class="f"><label class="lbl" for="f_barcode">' + t.f_bar + '</label><input id="f_barcode" data-f="barcode" inputmode="numeric" maxlength="14" value="' + esc(form.barcode) + '"></div></div><p class="t" style="margin:0 0 14px">' + t.pack_help + "</p>" +
     (addErr ? '<p class="err" role="alert">' + esc(addErr) + "</p>" : "") + (addMsg ? '<p class="ok"><span class="dot"></span>' + esc(addMsg) + "</p>" : "") +
     '<button class="btn p" data-a="save"' + (busy ? " disabled" : "") + ">" + (busy ? t.wait : t.save) + "</button>";
 }
@@ -319,10 +335,10 @@ async function saveBatch() {
   if (busy) return;
   addMsg = ""; addErr = ""; busy = true; render();
   try {
-    const r = await post("/api/batches", Object.assign({}, form, { quantity: Number(form.quantity), min_stock: Number(form.min_stock || 0) }));
+    const r = await post("/api/batches", Object.assign({}, form, { quantity: Number(form.quantity), min_stock: Number(form.min_stock || 0), pack_size: form.pack_size ? Number(form.pack_size) : null }));
     if (r.ok) {
       addMsg = T[lang].saved;
-      form.name = ""; form.quantity = "1"; form.expiry_date = ""; form.barcode = ""; form.min_stock = "0";
+      form.name = ""; form.quantity = "1"; form.expiry_date = ""; form.barcode = ""; form.min_stock = "0"; form.pack_label = ""; form.pack_size = ""; form.photo = ""; form.photo_url = ""; form.photo_pid = "";
       await loadData();
     } else addErr = msg(r.d.error, r.d);
   } catch (e) { addErr = msg("network"); }
@@ -345,9 +361,9 @@ async function onCode(code) {
     const r = await get("/api/lookup?code=" + code);
     if (r.ok && r.d.found === "home") {
       const p = r.d.product;
-      form.name = p.name; form.category = p.category || form.category; form.unit = p.unit; form.min_stock = String(p.min_stock || 0); lookupMsg = t.look_home;
+      form.name = p.name; form.category = p.category || form.category; form.unit = p.unit; form.min_stock = String(p.min_stock || 0); form.pack_label = p.pack_label || ""; form.pack_size = p.pack_size ? String(p.pack_size) : ""; form.photo = ""; form.photo_url = ""; form.photo_pid = p.has_photo ? p.id : ""; form.quantity = "1"; if (p.location_id && locs.some((x) => x.id === p.location_id)) form.location_id = p.location_id; lookupMsg = t.look_home;
     } else if (r.ok && r.d.found === "off") {
-      form.name = r.d.product.name + (r.d.product.brand ? " - " + r.d.product.brand : ""); form.category = "food"; lookupMsg = t.look_off;
+      form.name = r.d.product.name + (r.d.product.brand ? " - " + r.d.product.brand : ""); form.category = "food"; form.photo = ""; form.photo_pid = ""; form.photo_url = r.d.product.image_url || ""; lookupMsg = t.look_off;
     } else lookupMsg = t.look_none;
   } catch (e) { lookupMsg = t.look_none; }
   render();
@@ -390,6 +406,33 @@ async function startScan() {
     zr.decodeFromVideoDevice(undefined, "scan_v", (res) => { if (res) { const code = res.getText(); if (/^\d{6,14}$/.test(code)) onCode(code); } });
   } catch (e) { er.textContent = t.scan_fail; }
 }
+function shrink(file, max) {
+  return new Promise((ok, ko) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", 0.72));
+    };
+    img.onerror = ko; img.src = url;
+  });
+}
+async function onPhoto(e) {
+  const f = e.target.files && e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try {
+    const data = await shrink(f, 400);
+    if (photoPid) {
+      const pid = photoPid; photoPid = "";
+      const r = await post("/api/products/" + pid + "/photo", { photo: data });
+      if (!r.ok) { alert(msg(r.d.error, r.d)); return; }
+      photoVer[pid] = Date.now(); act = null; await loadData(); render();
+    } else { form.photo = data; form.photo_url = ""; form.photo_pid = ""; render(); }
+  } catch (err) { alert(T[lang].e.invalid_photo); }
+}
+document.getElementById("ph_cam").onchange = onPhoto;
+document.getElementById("ph_gal").onchange = onPhoto;
 document.getElementById("scan_close").onclick = stopScan;
 const actions = {
   tab: (d) => { tab = d.t; act = null; addMsg = ""; addErr = ""; homeErr = ""; homeMsg = ""; render(); },
@@ -404,6 +447,16 @@ const actions = {
     render();
   },
   disc_ok: async (d) => { await post("/api/batches/" + d.b + "/discard", {}); act = null; await loadData(); render(); },
+  ph_cam: () => { photoPid = ""; document.getElementById("ph_cam").click(); },
+  ph_gal: () => { photoPid = ""; document.getElementById("ph_gal").click(); },
+  ph_inv: (d) => { photoPid = d.p; document.getElementById("ph_gal").click(); },
+  del_open: (d) => { act = { kind:"del", bid:d.b }; render(); },
+  del_ok: async (d) => {
+    const r = await post("/api/batches/" + d.b + "/delete", {});
+    act = null;
+    if (!r.ok) alert(msg(r.d.error, r.d));
+    await loadData(); render();
+  },
   save: saveBatch,
   scan: startScan,
   invite: async () => {
@@ -439,8 +492,8 @@ document.addEventListener("change", (e) => {
   if (f === "name") {
     const p = prods.find((x) => x.name.toLowerCase() === form.name.trim().toLowerCase());
     if (p) {
-      form.category = p.category || form.category; form.unit = p.unit; form.barcode = p.barcode || ""; form.min_stock = String(p.min_stock || 0);
-      ["category", "unit", "barcode", "min_stock"].forEach((k) => { document.getElementById("f_" + k).value = form[k]; });
+      form.category = p.category || form.category; form.unit = p.unit; form.barcode = p.barcode || ""; form.min_stock = String(p.min_stock || 0); form.pack_label = p.pack_label || ""; form.pack_size = p.pack_size ? String(p.pack_size) : "";
+      ["category", "unit", "barcode", "min_stock", "pack_label", "pack_size"].forEach((k) => { document.getElementById("f_" + k).value = form[k]; });
       const req = form.category === "food" || form.category === "medicine";
       document.getElementById("l_exp").textContent = req ? T[lang].f_exp_req : T[lang].f_exp;
     }
