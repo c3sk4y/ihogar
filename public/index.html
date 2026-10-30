@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inventario</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1F4E9C">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <style>
@@ -503,6 +507,7 @@ document.getElementById("es").onclick = () => { lang = "es"; render(); };
 document.getElementById("en").onclick = () => { lang = "en"; render(); };
 const jm = location.hash.match(/^#join=([\w-]+)$/);
 if (jm) { inviteToken = jm[1]; mode = "register"; history.replaceState(null, "", location.pathname); }
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 render(); loadMe();
 </script>
 </body>
