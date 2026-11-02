@@ -94,14 +94,16 @@ const T = {
     filters:{ all:"Todo", soon:"Por vencer", low:"Stock bajo", expired:"Vencidos" },
     cat:{ food:"Alimentos", cleaning:"Limpieza", supplies:"Insumos", medicine:"Remedios" },
     unit:{ unit:"unid.", kg:"kg", g:"g", l:"litro(s)", ml:"ml", dose:"dosis", sachet:"bolsitas", tablet:"comprimidos" },
-    pack:{ box:"caja", jar:"tarro", bottle:"botella", pack:"paquete", can:"lata", tube:"tubo", bag:"bolsa" },
-    loc:{ furniture:"Mueble", cupdiningroom:"Alacena Comedor",cupboard:"Alacena", pankitchen:"Despensa Cocina", diningroom:"Comedor", kitchen:"Cocina", pantry:"Despensa", fridge:"Refrigerador", bathroom:"Ba\u00f1o", medicine:"Botiqu\u00edn", storage:"Bodega" },
-    f_name:"Nombre", f_cat:"Categor\u00eda", f_qty:"Cantidad (envases o unidades)", f_unit:"Unidad del contenido", f_pack:"Envase", f_pack_none:"Sin envase", f_content:"Contenido por envase (opcional)",
-    pack_help:"Ejemplo: 1 caja de t\u00e9 con 50 bolsitas = cantidad 1, envase caja, contenido 50, unidad bolsitas. Un tarro de caf\u00e9 de 260 g = cantidad 1, envase tarro, contenido 260, unidad g.",
+    pack:{ bag:["bolsa","bolsas"], wrap:["empaque","empaques"], box:["caja","cajas"], pack:["pack","packs"], bottle:["botella","botellas"], jar:["tarro","tarros"], can:["lata","latas"], tube:["tubo","tubos"] },
+    loc:{ kitchen:"Cocina", pantry:"Despensa", fridge:"Refrigerador", bathroom:"Ba\u00f1o", medicine:"Botiqu\u00edn", storage:"Bodega" },
+    f_name:"Descripci\u00f3n del producto", f_notes:"Detalle de esta compra (opcional)", notes_ph:"Ej.: variados sabores", f_item:"Contenido de cada unidad (opcional)", of_pack:"de", use_full:"Envase completo", f_cat:"Categor\u00eda", f_qty:"Cantidad de envases", f_unit:"Unidad del contenido", f_pack:"Formato", f_pack_none:"Sin formato (suelto)", f_content:"Contenido por envase",
+    pack_help:"Ejemplos: 1 bolsa de jam\u00f3n de 100 g = cantidad 1, formato bolsa, contenido 100 g. 1 caja de leche de 900 ml = cantidad 1, formato caja, contenido 900 ml. 1 pack de 12 yogures de 70 ml = cantidad 1, formato pack, contenido 12 unid., cada unidad 70 ml, detalle: variados sabores.",
     photo:"Foto de referencia", photo_take:"Tomar foto", photo_pick:"Elegir de galer\u00eda", photo_change:"Cambiar foto",
     loc_new:"+ Nueva ubicaci\u00f3n", loc_name:"Nombre de la ubicaci\u00f3n", loc_title:"Ubicaciones", loc_add:"Agregar", loc_rename:"Renombrar", loc_del:"Eliminar",
     loc_del_q:"\u00bfEliminar esta ubicaci\u00f3n?", loc_rename_q:"Nuevo nombre",
     edit:"Editar", edit_title:"Editar lote", edit_save:"Guardar cambios", edit_note:"Los datos del producto se cambian en todos sus lotes.", f_qty_edit:"Cantidad actual (en la unidad)",
+    empty_soon:"Nada vence en los pr\u00f3ximos 30 d\u00edas.", empty_low:"No hay productos con stock bajo. Define un stock m\u00ednimo al agregar o editar un producto.", empty_expired:"No hay productos vencidos.",
+    photo_failed:"No se pudo traer la foto del producto; puedes tomarla t\u00fa.",
     del:"Eliminar lote", del_q:"\u00bfEliminar este lote? Se borra sin registrar merma. \u00dasalo solo para corregir errores.", f_loc:"Ubicaci\u00f3n", f_buy:"Fecha de compra",
     f_exp:"Caducidad (opcional)", f_exp_req:"Caducidad (obligatoria)", f_min:"Stock m\u00ednimo (opcional)", f_bar:"C\u00f3digo de barras (opcional)",
     add_title:"Agregar producto", save:"Guardar en inventario", saved:"Guardado en el inventario.",
@@ -131,14 +133,16 @@ const T = {
     filters:{ all:"All", soon:"Expiring", low:"Low stock", expired:"Expired" },
     cat:{ food:"Food", cleaning:"Cleaning", supplies:"Supplies", medicine:"Medicines" },
     unit:{ unit:"units", kg:"kg", g:"g", l:"liter(s)", ml:"ml", dose:"doses", sachet:"sachets", tablet:"tablets" },
-    pack:{ box:"box", jar:"jar", bottle:"bottle", pack:"pack", can:"can", tube:"tube", bag:"bag" },
-    loc:{ cupdiningroom:"Cupboard Diningroom", cupboard:"Cupboard", diningroom:"Dining Room", pankitchen:"Pantry kitchen", kitchen:"Kitchen", pantry:"Pantry", fridge:"Refrigerator", bathroom:"Bathroom", medicine:"Medicine cabinet", storage:"Storage room" },
-    f_name:"Name", f_cat:"Category", f_qty:"Quantity (packages or units)", f_unit:"Content unit", f_pack:"Package", f_pack_none:"No package", f_content:"Content per package (optional)",
-    pack_help:"Example: 1 box of tea with 50 sachets = quantity 1, package box, content 50, unit sachets. A 260 g coffee jar = quantity 1, package jar, content 260, unit g.",
+    pack:{ bag:["bag","bags"], wrap:["wrapper","wrappers"], box:["box","boxes"], pack:["pack","packs"], bottle:["bottle","bottles"], jar:["jar","jars"], can:["can","cans"], tube:["tube","tubes"] },
+    loc:{ kitchen:"Kitchen", pantry:"Pantry", fridge:"Refrigerator", bathroom:"Bathroom", medicine:"Medicine cabinet", storage:"Storage room" },
+    f_name:"Product description", f_notes:"Details of this purchase (optional)", notes_ph:"E.g.: assorted flavors", f_item:"Content of each unit (optional)", of_pack:"of", use_full:"Whole package", f_cat:"Category", f_qty:"Number of packages", f_unit:"Content unit", f_pack:"Format", f_pack_none:"No format (loose)", f_content:"Content per package",
+    pack_help:"Examples: 1 bag of ham of 100 g = quantity 1, format bag, content 100 g. 1 box of milk of 900 ml = quantity 1, format box, content 900 ml. 1 pack of 12 yogurts of 70 ml = quantity 1, format pack, content 12 units, each unit 70 ml, details: assorted flavors.",
     photo:"Reference photo", photo_take:"Take photo", photo_pick:"Choose from gallery", photo_change:"Change photo",
     loc_new:"+ New location", loc_name:"Location name", loc_title:"Locations", loc_add:"Add", loc_rename:"Rename", loc_del:"Delete",
     loc_del_q:"Delete this location?", loc_rename_q:"New name",
     edit:"Edit", edit_title:"Edit batch", edit_save:"Save changes", edit_note:"Product details change in all its batches.", f_qty_edit:"Current quantity (in the unit)",
+    empty_soon:"Nothing expires in the next 30 days.", empty_low:"No low-stock products. Set a minimum stock when adding or editing a product.", empty_expired:"No expired products.",
+    photo_failed:"The product photo could not be fetched; you can take one yourself.",
     del:"Delete batch", del_q:"Delete this batch? It is removed without recording waste. Use only to fix mistakes.", f_loc:"Location", f_buy:"Purchase date",
     f_exp:"Expiry date (optional)", f_exp_req:"Expiry date (required)", f_min:"Minimum stock (optional)", f_bar:"Barcode (optional)",
     add_title:"Add product", save:"Save to inventory", saved:"Saved to inventory.",
@@ -160,6 +164,7 @@ const T = {
         invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"Only the manager can do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used.", location_exists:"A location with that name already exists.", location_in_use:"There are products in that location. Move them before deleting it.", invalid_location_name:"Enter a name (up to 40 characters).", barcode_in_use:"That barcode already belongs to another product." }
   }
 };
+const SOON_DAYS = 30;
 const pad = (n) => String(n).padStart(2, "0");
 const today = () => { const d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
 const daysTo = (d) => Math.round((Date.parse(d + "T00:00:00") - Date.parse(today() + "T00:00:00")) / 864e5);
@@ -173,7 +178,7 @@ const ICON = {
 };
 let lang = "es", mode = "login", user = undefined, token = "", err = "", busy = false, vals = { email:"", password:"", home:"" };
 let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, actErr = "", addMsg = "", addErr = "", lookupMsg = "", hm = null, invLink = "", homeErr = "", homeMsg = "", inviteToken = "";
-let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"" };
+let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"", item_amount:"", item_unit:"ml", notes:"" };
 let editId = "";
 let photoPid = "", photoVer = {};
 const app = document.getElementById("app"), nav = document.getElementById("nav");
@@ -237,14 +242,27 @@ function accessView() {
 function opts(list, sel, label) {
   return list.map((v) => '<option value="' + esc(v) + '"' + (v === sel ? " selected" : "") + ">" + esc(label(v)) + "</option>").join("");
 }
+function packName(k, n) { const p = T[lang].pack[k]; return p ? (n === 1 ? p[0] : p[1]) : ""; }
+function describe(r) {
+  const t = T[lang], u = t.unit[r.unit] || r.unit, q = r.quantity, ps = r.pack_size, pl = r.pack_label;
+  const item = r.item_amount ? " \u00d7 " + fmtQ(r.item_amount) + " " + (t.unit[r.item_unit] || r.item_unit) : "";
+  if (ps && pl) {
+    const n = q / ps;
+    if (n >= 1 && Math.abs(n - Math.round(n)) < 1e-6) { const k = Math.round(n); return k + " " + packName(pl, k) + " " + t.of_pack + " " + fmtQ(ps) + " " + u + item; }
+    return fmtQ(q) + " " + u + " (" + packName(pl, 1) + " " + t.of_pack + " " + fmtQ(ps) + " " + u + item + ")";
+  }
+  if (ps) return fmtQ(q) + " " + u + " (" + fmtQ(ps) + " " + u + item + ")";
+  if (pl) return fmtQ(q) + " " + packName(pl, q);
+  return fmtQ(q) + " " + u;
+}
 function statusOf(r) {
   const t = T[lang];
   const days = r.expiry_date ? daysTo(r.expiry_date) : null;
   const low = r.min_stock > 0 && r.total < r.min_stock;
   let color = "var(--green)", cls = "ok";
   if (days !== null && days < 0) { color = "var(--red)"; cls = "expired"; }
-  else if ((days !== null && days <= 7) || low) { color = "var(--yellow)"; cls = "soon"; }
-  let text = days === null ? t.no_exp : days < 0 ? t.exp_ago(-days) : days === 0 ? t.exp_today : days <= 7 ? t.exp_in(days) : t.exp_on(fmtDate(r.expiry_date));
+  else if ((days !== null && days <= SOON_DAYS) || low) { color = "var(--yellow)"; cls = "soon"; }
+  let text = days === null ? t.no_exp : days < 0 ? t.exp_ago(-days) : days === 0 ? t.exp_today : days <= SOON_DAYS ? t.exp_in(days) : t.exp_on(fmtDate(r.expiry_date));
   return { days, low, color, cls, text };
 }
 function invView() {
@@ -256,26 +274,26 @@ function invView() {
   inv.forEach((r) => {
     const s = statusOf(r), firstOne = !seen[r.product_id] && pc[r.product_id] > 1;
     seen[r.product_id] = true;
-    if (filter === "soon" && !(s.days !== null && s.days >= 0 && s.days <= 7)) return;
+    if (filter === "soon" && !(s.days !== null && s.days >= 0 && s.days <= SOON_DAYS)) return;
     if (filter === "low" && !s.low) return;
     if (filter === "expired" && s.cls !== "expired") return;
     n++;
     const who = r.owner ? r.owner.split("@")[0] : "";
     html += '<div class="item"><div class="bar" style="background:' + s.color + '"></div>' + (r.has_photo ? '<img class="ph" loading="lazy" alt="" src="/api/products/' + r.product_id + '/photo?v=' + (photoVer[r.product_id] || 0) + '">' : '') + '<div class="info"><div class="val">' + esc(r.name) + '</div>' +
-      '<div class="t" style="margin-top:2px">' + esc((t.loc[r.location] || r.location || "")) + " \u00b7 " + fmtQ(r.quantity) + " " + esc(t.unit[r.unit] || r.unit) + (r.initial_quantity && Math.abs(r.initial_quantity - r.quantity) > 1e-9 ? " " + t.of + " " + fmtQ(r.initial_quantity) : "") + (r.pack_label && r.pack_size ? " \u00b7 " + esc(t.pack[r.pack_label] || "") + " " + fmtQ(r.pack_size) : "") + (who ? " \u00b7 " + esc(who) : "") + '</div>' +
-      '<div class="x">' + esc(s.text) + '</div>' + (s.low ? '<div class="x">' + t.low_t + "</div>" : "") + '</div>' +
+      '<div class="t" style="margin-top:2px">' + esc((t.loc[r.location] || r.location || "")) + " \u00b7 " + esc(describe(r)) + (who ? " \u00b7 " + esc(who) : "") + '</div>' +
+      (r.notes ? '<div class="t" style="margin-top:2px">' + esc(r.notes) + '</div>' : "") + '<div class="x">' + esc(s.text) + '</div>' + (s.low ? '<div class="x">' + t.low_t + "</div>" : "") + '</div>' +
       '<div class="side">' + (firstOne ? '<span class="tag">' + t.use_first + "</span>" : "") +
       '<button class="mini" data-a="use_open" data-b="' + r.batch_id + '">' + t.use + "</button>" +
       (s.cls === "expired" ? '<button class="mini" style="color:var(--red);border-color:var(--red)" data-a="disc_open" data-b="' + r.batch_id + '">' + t.discard + "</button>" : "") + "</div></div>";
     if (act && act.bid === r.batch_id) {
       html += '<div class="panel">' + (act.kind === "use"
-        ? '<label class="lbl" for="uq">' + t.qty_use + " (" + esc(t.unit[r.unit] || r.unit) + ')</label><input id="uq" type="number" inputmode="decimal" min="0" step="any" value="1"><div class="t" style="margin-top:6px">' + t.fifo_use + '</div>' +
+        ? '<label class="lbl" for="uq">' + t.qty_use + " (" + esc(t.unit[r.unit] || r.unit) + ')</label><input id="uq" type="number" inputmode="decimal" min="0" step="any" value="1">' + (r.pack_size ? '<button class="mini" style="margin-top:8px" data-a="use_full" data-q="' + fmtQ(Math.min(r.pack_size, r.quantity)) + '">' + t.use_full + "</button>" : "") + '<div class="t" style="margin-top:6px">' + t.fifo_use + '</div>' +
           (actErr ? '<p class="err" style="margin:8px 0 0">' + esc(actErr) + "</p>" : "") +
           '<div class="two"><button class="btn p" data-a="use_ok" data-p="' + r.product_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div><button class=\"btn s\" style=\"margin-top:10px\" data-a=\"edit_open\" data-b=\"" + r.batch_id + "\">" + t.edit + "</button><button class=\"btn s\" style=\"margin-top:10px\" data-a=\"ph_inv\" data-p=\"" + r.product_id + "\">" + t.photo_change + "</button><button class=\"btn s\" style=\"color:var(--red);border-color:var(--red);margin-top:10px\" data-a=\"del_open\" data-b=\"" + r.batch_id + "\">" + t.del + "</button>"
         : '<div class="val">' + (act.kind === "del" ? t.del_q : t.discard_q) + '</div><div class="two"><button class="btn d" data-a="' + (act.kind === "del" ? "del_ok" : "disc_ok") + '" data-b="' + r.batch_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div>") + "</div>";
     }
   });
-  if (!n) html += '<p class="t">' + t.empty + "</p>";
+  if (!n) html += '<p class="t">' + (filter === "all" ? t.empty : t["empty_" + filter]) + "</p>";
   return html;
 }
 function addView() {
@@ -284,13 +302,16 @@ function addView() {
     (function () { const src = form.photo || form.photo_url || (form.photo_pid ? "/api/products/" + form.photo_pid + "/photo" : ""); return '<div class="f"><span class="lbl">' + t.photo + '</span><div class="row">' + (src ? '<img class="pv" alt="" src="' + esc(src) + '">' : '<div class="pv"></div>') + '<div style="flex:1;display:flex;flex-direction:column;gap:8px"><button class="mini" data-a="ph_cam">' + t.photo_take + '</button><button class="mini" data-a="ph_gal">' + t.photo_pick + '</button></div></div></div>'; })() +
     '<div class="f"><label class="lbl" for="f_name">' + t.f_name + '</label><input id="f_name" data-f="name" list="plist" maxlength="80" autocomplete="off" value="' + esc(form.name) + '"></div>' +
     '<datalist id="plist">' + prods.map((p) => '<option value="' + esc(p.name) + '"></option>').join("") + "</datalist>" +
+    '<div class="f"><label class="lbl" for="f_notes">' + t.f_notes + '</label><input id="f_notes" data-f="notes" maxlength="120" placeholder="' + esc(t.notes_ph) + '" value="' + esc(form.notes) + '"></div>' +
     '<div class="grid">' +
     '<div class="f"><label class="lbl" for="f_category">' + t.f_cat + '</label><select id="f_category" data-f="category">' + opts(["food", "cleaning", "supplies", "medicine"], form.category, (v) => t.cat[v]) + "</select></div>" +
     '<div class="f"><label class="lbl" for="f_location_id">' + t.f_loc + '</label><select id="f_location_id" data-f="location_id">' + opts(locs.map((l) => l.id).concat(["__new__"]), form.location_id, (id) => { if (id === "__new__") return t.loc_new; const l = locs.find((x) => x.id === id); return t.loc[l.name] || l.name; }) + "</select>" + (form.location_id === "__new__" ? '<input id="f_new_location" data-f="new_location" maxlength="40" placeholder="' + esc(t.loc_name) + '" style="margin-top:8px" value="' + esc(form.new_location) + '">' : "") + "</div>" +
     '<div class="f"><label class="lbl" for="f_quantity">' + (editId ? t.f_qty_edit : t.f_qty) + '</label><input id="f_quantity" data-f="quantity" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.quantity) + '"></div>' +
-    '<div class="f"><label class="lbl" for="f_unit">' + t.f_unit + '</label><select id="f_unit" data-f="unit">' + opts(["unit", "kg", "g", "l", "ml", "dose", "sachet", "tablet"], form.unit, (v) => t.unit[v]) + "</select></div>" +
-    '<div class="f"><label class="lbl" for="f_pack_label">' + t.f_pack + '</label><select id="f_pack_label" data-f="pack_label"><option value="">' + t.f_pack_none + "</option>" + opts(["box", "jar", "bottle", "pack", "can", "tube", "bag"], form.pack_label, (v) => t.pack[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_pack_label">' + t.f_pack + '</label><select id="f_pack_label" data-f="pack_label"><option value="">' + t.f_pack_none + "</option>" + opts(["bag", "wrap", "box", "pack", "bottle", "jar", "can", "tube"], form.pack_label, (v) => t.pack[v][0]) + "</select></div>" +
     '<div class="f"><label class="lbl" for="f_pack_size">' + t.f_content + '</label><input id="f_pack_size" data-f="pack_size" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.pack_size) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_unit">' + t.f_unit + '</label><select id="f_unit" data-f="unit">' + opts(["unit", "kg", "g", "l", "ml", "dose", "sachet", "tablet"], form.unit, (v) => t.unit[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_item_amount">' + t.f_item + '</label><input id="f_item_amount" data-f="item_amount" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.item_amount) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_item_unit">&nbsp;</label><select id="f_item_unit" data-f="item_unit">' + opts(["g", "kg", "ml", "l"], form.item_unit, (v) => t.unit[v]) + "</select></div>" +
     '<div class="f"><label class="lbl" for="f_purchase_date">' + t.f_buy + '</label><input id="f_purchase_date" data-f="purchase_date" type="date" value="' + esc(form.purchase_date) + '"></div>' +
     '<div class="f"><label class="lbl" id="l_exp" for="f_expiry_date">' + (req ? t.f_exp_req : t.f_exp) + '</label><input id="f_expiry_date" data-f="expiry_date" type="date" value="' + esc(form.expiry_date) + '"></div>' +
     '<div class="f"><label class="lbl" for="f_min_stock">' + t.f_min + '</label><input id="f_min_stock" data-f="min_stock" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.min_stock) + '"></div>' +
@@ -351,7 +372,7 @@ async function submit() {
 }
 function resetForm() {
   const keep = { loc: form.location_id === "__new__" ? "" : form.location_id, buy: form.purchase_date };
-  form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:keep.loc, purchase_date:keep.buy, expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"" };
+  form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:keep.loc, purchase_date:keep.buy, expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"", item_amount:"", item_unit:"ml", notes:"" };
 }
 async function saveBatch() {
   if (busy) return;
@@ -365,7 +386,7 @@ async function saveBatch() {
     const body = Object.assign({}, form, { quantity: Number(form.quantity), min_stock: Number(form.min_stock || 0), pack_size: form.pack_size ? Number(form.pack_size) : null });
     const r = await post(editId ? "/api/batches/" + editId + "/edit" : "/api/batches", body);
     if (r.ok) {
-      if (editId) { editId = ""; tab = "inv"; } else addMsg = T[lang].saved;
+      if (editId) { editId = ""; tab = "inv"; } else addMsg = T[lang].saved + (r.d.photo_failed ? " " + T[lang].photo_failed : "");
       resetForm(); await loadData();
     } else addErr = msg(r.d.error, r.d);
   } catch (e) { addErr = msg("network"); }
@@ -388,9 +409,9 @@ async function onCode(code) {
     const r = await get("/api/lookup?code=" + code);
     if (r.ok && r.d.found === "home") {
       const p = r.d.product;
-      form.name = p.name; form.category = p.category || form.category; form.unit = p.unit; form.min_stock = String(p.min_stock || 0); form.pack_label = p.pack_label || ""; form.pack_size = p.pack_size ? String(p.pack_size) : ""; form.photo = ""; form.photo_url = ""; form.photo_pid = p.has_photo ? p.id : ""; form.quantity = "1"; if (p.location_id && locs.some((x) => x.id === p.location_id)) form.location_id = p.location_id; lookupMsg = t.look_home;
+      form.name = p.name; form.category = p.category || form.category; form.unit = p.unit; form.min_stock = String(p.min_stock || 0); form.pack_label = p.pack_label || ""; form.pack_size = p.pack_size ? String(p.pack_size) : ""; form.item_amount = p.item_amount ? String(p.item_amount) : ""; form.item_unit = p.item_unit || "ml"; form.photo = ""; form.photo_url = ""; form.photo_pid = p.has_photo ? p.id : ""; form.quantity = "1"; if (p.location_id && locs.some((x) => x.id === p.location_id)) form.location_id = p.location_id; lookupMsg = t.look_home;
     } else if (r.ok && r.d.found === "off") {
-      form.name = r.d.product.name + (r.d.product.brand ? " - " + r.d.product.brand : ""); form.category = "food"; form.photo = ""; form.photo_pid = ""; form.photo_url = r.d.product.image_url || ""; lookupMsg = t.look_off;
+      form.name = r.d.product.name + (r.d.product.brand ? " - " + r.d.product.brand : ""); form.category = "food"; const c = r.d.product; if (c.pack_size) { form.pack_size = String(c.pack_size); form.unit = c.unit; form.item_amount = c.item_amount ? String(c.item_amount) : ""; form.item_unit = c.item_unit || "ml"; } form.photo = ""; form.photo_pid = ""; form.photo_url = r.d.product.image_url || ""; lookupMsg = t.look_off; if (form.photo_url) form.photo = await remoteImage(form.photo_url);
     } else lookupMsg = t.look_none;
   } catch (e) { lookupMsg = t.look_none; }
   render();
@@ -432,6 +453,9 @@ async function startScan() {
     zr = new ZXing.BrowserMultiFormatReader();
     zr.decodeFromVideoDevice(undefined, "scan_v", (res) => { if (res) { const code = res.getText(); if (/^\d{6,14}$/.test(code)) onCode(code); } });
   } catch (e) { er.textContent = t.scan_fail; }
+}
+async function remoteImage(url) {
+  try { const r = await fetch(url, { mode: "cors" }); if (!r.ok) return ""; return await shrink(await r.blob(), 400); } catch (e) { return ""; }
 }
 function shrink(file, max) {
   return new Promise((ok, ko) => {
@@ -481,7 +505,7 @@ const actions = {
     const r = inv.find((x) => x.batch_id === d.b);
     if (!r) return;
     editId = r.batch_id; act = null; addMsg = ""; addErr = "";
-    form = { name:r.name, category:r.category || "food", unit:r.unit, quantity:String(r.quantity), location_id:r.location_id || (locs[0] ? locs[0].id : ""), purchase_date:r.purchase_date, expiry_date:r.expiry_date || "", min_stock:String(r.min_stock || 0), barcode:r.barcode || "", pack_label:r.pack_label || "", pack_size:r.pack_size ? String(r.pack_size) : "", photo:"", photo_url:"", photo_pid:r.has_photo ? r.product_id : "", new_location:"" };
+    form = { name:r.name, category:r.category || "food", unit:r.unit, quantity:String(r.quantity), location_id:r.location_id || (locs[0] ? locs[0].id : ""), purchase_date:r.purchase_date, expiry_date:r.expiry_date || "", min_stock:String(r.min_stock || 0), barcode:r.barcode || "", pack_label:r.pack_label || "", pack_size:r.pack_size ? String(r.pack_size) : "", photo:"", photo_url:"", photo_pid:r.has_photo ? r.product_id : "", new_location:"", item_amount:r.item_amount ? String(r.item_amount) : "", item_unit:r.item_unit || "ml", notes:r.notes || "" };
     tab = "add"; render(); window.scrollTo(0, 0);
   },
   edit_cancel: () => { editId = ""; resetForm(); tab = "inv"; render(); },
@@ -503,6 +527,7 @@ const actions = {
     if (!r.ok) { alert(msg(r.d.error, r.d)); return; }
     await loadData(); render();
   },
+  use_full: (d) => { document.getElementById("uq").value = d.q; },
   del_open: (d) => { act = { kind:"del", bid:d.b }; render(); },
   del_ok: async (d) => {
     const r = await post("/api/batches/" + d.b + "/delete", {});
@@ -546,8 +571,8 @@ document.addEventListener("change", (e) => {
   if (f === "name") {
     const p = prods.find((x) => x.name.toLowerCase() === form.name.trim().toLowerCase());
     if (p) {
-      form.category = p.category || form.category; form.unit = p.unit; form.barcode = p.barcode || ""; form.min_stock = String(p.min_stock || 0); form.pack_label = p.pack_label || ""; form.pack_size = p.pack_size ? String(p.pack_size) : "";
-      ["category", "unit", "barcode", "min_stock", "pack_label", "pack_size"].forEach((k) => { document.getElementById("f_" + k).value = form[k]; });
+      form.category = p.category || form.category; form.unit = p.unit; form.barcode = p.barcode || ""; form.min_stock = String(p.min_stock || 0); form.pack_label = p.pack_label || ""; form.pack_size = p.pack_size ? String(p.pack_size) : ""; form.item_amount = p.item_amount ? String(p.item_amount) : ""; form.item_unit = p.item_unit || "ml";
+      ["category", "unit", "barcode", "min_stock", "pack_label", "pack_size", "item_amount", "item_unit"].forEach((k) => { document.getElementById("f_" + k).value = form[k]; });
       const req = form.category === "food" || form.category === "medicine";
       document.getElementById("l_exp").textContent = req ? T[lang].f_exp_req : T[lang].f_exp;
     }

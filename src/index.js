@@ -199,7 +199,8 @@ async function setPhoto(req, env, u, pid) {
   if (!r.meta.changes) return json({ error: "not_found" }, 404);
   return json({ ok: true });
 }
-const PACKS = ["box", "jar", "bottle", "pack", "can", "tube", "bag"];
+const PACKS = ["box", "jar", "bottle", "pack", "can", "tube", "bag", "wrap"];
+const ITEM_UNITS = ["g", "kg", "ml", "l"];
 const pad14 = (c) => String(c).padStart(14, "0");
 const DEFAULT_LOCS = ["kitchen", "pantry", "fridge", "bathroom", "medicine", "storage"];
 const isDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s));
@@ -210,12 +211,12 @@ async function listLocations(env, u) {
   return json({ locations: r.results });
 }
 async function listProducts(env, u) {
-  const r = await env.DB.prepare("SELECT id, name, category, unit, barcode, min_stock, pack_size, pack_label, (photo IS NOT NULL) AS has_photo FROM products WHERE home_id = ? ORDER BY name").bind(u.home_id).all();
+  const r = await env.DB.prepare("SELECT id, name, category, unit, barcode, min_stock, pack_size, pack_label, item_amount, item_unit, (photo IS NOT NULL) AS has_photo FROM products WHERE home_id = ? ORDER BY name").bind(u.home_id).all();
   return json({ products: r.results });
 }
 async function listInventory(env, u) {
   const r = await env.DB.prepare(
-    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, p.barcode, b.location_id, p.pack_size, p.pack_label, (p.photo IS NOT NULL) AS has_photo, b.initial_quantity, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, o.email AS owner, " +
+    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, p.barcode, b.location_id, b.notes, p.item_amount, p.item_unit, p.pack_size, p.pack_label, (p.photo IS NOT NULL) AS has_photo, b.initial_quantity, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, o.email AS owner, " +
     "(SELECT SUM(b2.quantity) FROM batches b2 WHERE b2.product_id = p.id AND b2.status = 'active') AS total " +
     "FROM batches b JOIN products p ON p.id = b.product_id LEFT JOIN locations l ON l.id = b.location_id LEFT JOIN people o ON o.id = b.owner_id " +
     "WHERE p.home_id = ? AND b.status = 'active' " + FIFO
@@ -235,6 +236,10 @@ async function addBatch(req, env, u) {
   if (packLabel && !PACKS.includes(packLabel)) return json({ error: "invalid_pack" }, 400);
   const packSize = b.pack_size ? Number(b.pack_size) : null;
   if (packSize !== null && !(packSize > 0 && packSize <= 100000)) return json({ error: "invalid_pack" }, 400);
+  const itemAmount = b.item_amount ? Number(b.item_amount) : null;
+  const itemUnit = itemAmount ? String(b.item_unit || "") : null;
+  if (itemAmount !== null && !(itemAmount > 0 && itemAmount <= 100000 && ITEM_UNITS.includes(itemUnit))) return json({ error: "invalid_pack" }, 400);
+  const notes = typeof b.notes === "string" && b.notes.trim() ? b.notes.trim().slice(0, 120) : null;
   const qty = Math.round(n * (packSize || 1) * 1e6) / 1e6;
   if (qty > 1000000) return json({ error: "invalid_quantity" }, 400);
   const min = Number(b.min_stock || 0);
@@ -258,16 +263,16 @@ async function addBatch(req, env, u) {
   if (prod) {
     pid = prod.id;
     if (photo && (b.photo || !prod.hp)) stmts.push(env.DB.prepare("UPDATE products SET photo = ? WHERE id = ?").bind(photo, pid));
-    if (packSize || packLabel) stmts.push(env.DB.prepare("UPDATE products SET pack_size = ?, pack_label = ? WHERE id = ?").bind(packSize, packLabel, pid));
+    if (packSize || packLabel || itemAmount) stmts.push(env.DB.prepare("UPDATE products SET pack_size = ?, pack_label = ?, item_amount = ?, item_unit = ? WHERE id = ?").bind(packSize, packLabel, itemAmount, itemUnit, pid));
   } else {
     pid = crypto.randomUUID();
-    stmts.push(env.DB.prepare("INSERT INTO products (id, home_id, name, category, barcode, unit, min_stock, pack_size, pack_label, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(pid, u.home_id, name, b.category, barcode, b.unit, min, packSize, packLabel, photo));
+    stmts.push(env.DB.prepare("INSERT INTO products (id, home_id, name, category, barcode, unit, min_stock, pack_size, pack_label, item_amount, item_unit, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(pid, u.home_id, name, b.category, barcode, b.unit, min, packSize, packLabel, itemAmount, itemUnit, photo));
   }
   const bid = crypto.randomUUID();
-  stmts.push(env.DB.prepare("INSERT INTO batches (id, product_id, location_id, owner_id, quantity, initial_quantity, purchase_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(bid, pid, loc.id, u.id, qty, qty, b.purchase_date, exp));
+  stmts.push(env.DB.prepare("INSERT INTO batches (id, product_id, location_id, owner_id, quantity, initial_quantity, purchase_date, expiry_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(bid, pid, loc.id, u.id, qty, qty, b.purchase_date, exp, notes));
   stmts.push(env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id) VALUES (?, ?, 'in', ?, ?)").bind(crypto.randomUUID(), bid, qty, u.id));
   await env.DB.batch(stmts);
-  return json({ ok: true, id: bid }, 201);
+  return json({ ok: true, id: bid, photo_failed: !!(b.photo_url && !b.photo && !photo) }, 201);
 }
 async function deleteBatch(env, u, bid) {
   const r = await env.DB.prepare("SELECT b.id, b.owner_id, b.product_id FROM batches b JOIN products p ON p.id = b.product_id WHERE b.id = ? AND p.home_id = ?").bind(bid, u.home_id).first();
@@ -341,6 +346,10 @@ async function editBatch(req, env, u, bid) {
   if (packLabel && !PACKS.includes(packLabel)) return json({ error: "invalid_pack" }, 400);
   const packSize = b.pack_size ? Number(b.pack_size) : null;
   if (packSize !== null && !(packSize > 0 && packSize <= 100000)) return json({ error: "invalid_pack" }, 400);
+  const itemAmount = b.item_amount ? Number(b.item_amount) : null;
+  const itemUnit = itemAmount ? String(b.item_unit || "") : null;
+  if (itemAmount !== null && !(itemAmount > 0 && itemAmount <= 100000 && ITEM_UNITS.includes(itemUnit))) return json({ error: "invalid_pack" }, 400);
+  const notes = typeof b.notes === "string" && b.notes.trim() ? b.notes.trim().slice(0, 120) : null;
   const min = Number(b.min_stock || 0);
   if (!(min >= 0 && min <= 1000000)) return json({ error: "invalid_quantity" }, 400);
   if (!isDate(b.purchase_date)) return json({ error: "invalid_date" }, 400);
@@ -355,8 +364,8 @@ async function editBatch(req, env, u, bid) {
   if (b.photo && !validPhoto(b.photo)) return json({ error: "invalid_photo" }, 400);
   const initial = Math.max(r.initial_quantity || r.quantity, qty);
   const stmts = [
-    env.DB.prepare("UPDATE products SET name = ?, category = ?, unit = ?, barcode = ?, min_stock = ?, pack_size = ?, pack_label = ? WHERE id = ?").bind(name, b.category, b.unit, barcode, min, packSize, packLabel, r.product_id),
-    env.DB.prepare("UPDATE batches SET location_id = ?, quantity = ?, initial_quantity = ?, purchase_date = ?, expiry_date = ? WHERE id = ?").bind(loc.id, qty, initial, b.purchase_date, exp, bid),
+    env.DB.prepare("UPDATE products SET name = ?, category = ?, unit = ?, barcode = ?, min_stock = ?, pack_size = ?, pack_label = ?, item_amount = ?, item_unit = ? WHERE id = ?").bind(name, b.category, b.unit, barcode, min, packSize, packLabel, itemAmount, itemUnit, r.product_id),
+    env.DB.prepare("UPDATE batches SET location_id = ?, quantity = ?, initial_quantity = ?, purchase_date = ?, expiry_date = ?, notes = ? WHERE id = ?").bind(loc.id, qty, initial, b.purchase_date, exp, notes, bid),
   ];
   if (b.photo) stmts.push(env.DB.prepare("UPDATE products SET photo = ? WHERE id = ?").bind(b.photo, r.product_id));
   if (Math.abs(qty - r.quantity) > 1e-9) stmts.push(env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id, note) VALUES (?, ?, 'adjust', ?, ?, 'edit')").bind(crypto.randomUUID(), bid, Math.round((qty - r.quantity) * 1e6) / 1e6, u.id));
@@ -398,15 +407,25 @@ async function discardBatch(env, u, bid) {
   return json({ ok: true });
 }
 
+function parseQty(q) {
+  if (typeof q !== "string") return null;
+  const s = q.trim().toLowerCase().replace(",", ".");
+  const conv = (a, u) => (u === "cl" ? [a * 10, "ml"] : [a, u]);
+  let m = s.match(/^(\d+)\s*[x\u00d7]\s*(\d+(?:\.\d+)?)\s*(g|kg|ml|cl|l)$/);
+  if (m) { const [a, u] = conv(Number(m[2]), m[3]); return { pack_size: Number(m[1]), unit: "unit", item_amount: a, item_unit: u }; }
+  m = s.match(/^(\d+(?:\.\d+)?)\s*(g|kg|ml|cl|l)$/);
+  if (m) { const [a, u] = conv(Number(m[1]), m[2]); return { pack_size: a, unit: u }; }
+  return null;
+}
 async function lookup(env, u, code) {
   if (!/^\d{6,14}$/.test(code)) return json({ error: "invalid_barcode" }, 400);
   const own = await env.DB.prepare(
-    "SELECT p.id, (p.photo IS NOT NULL) AS has_photo, p.name, p.category, p.unit, p.min_stock, p.pack_size, p.pack_label, (SELECT b.location_id FROM batches b WHERE b.product_id = p.id ORDER BY b.created_at DESC LIMIT 1) AS location_id " +
+    "SELECT p.id, (p.photo IS NOT NULL) AS has_photo, p.name, p.category, p.unit, p.min_stock, p.pack_size, p.pack_label, p.item_amount, p.item_unit, (SELECT b.location_id FROM batches b WHERE b.product_id = p.id ORDER BY b.created_at DESC LIMIT 1) AS location_id " +
     "FROM products p WHERE p.home_id = ? AND substr('00000000000000' || p.barcode, -14) = ?"
   ).bind(u.home_id, pad14(code)).first();
   if (own) return json({ found: "home", product: own });
   try {
-    const r = await fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands,image_front_small_url", {
+    const r = await fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands,image_front_small_url,quantity", {
       headers: { "user-agent": "InventarioHogar/0.1" },
       signal: AbortSignal.timeout(4000),
     });
@@ -415,7 +434,7 @@ async function lookup(env, u, code) {
       if (j.status === 1 && j.product && j.product.product_name) {
         const brand = j.product.brands ? String(j.product.brands).split(",")[0].trim().slice(0, 40) : "";
         const img = typeof j.product.image_front_small_url === "string" && j.product.image_front_small_url.startsWith("https://images.openfoodfacts.org/") ? j.product.image_front_small_url : "";
-        return json({ found: "off", product: { name: String(j.product.product_name).slice(0, 80), brand, image_url: img } });
+        return json({ found: "off", product: { name: String(j.product.product_name).slice(0, 80), brand, image_url: img, ...(parseQty(j.product.quantity) || {}) } });
       }
     }
   } catch (e) {}
