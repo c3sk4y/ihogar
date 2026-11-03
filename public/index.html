@@ -74,6 +74,40 @@
   .link { word-break:break-all; font-size:13px; font-weight:500; padding:10px 12px; border:1.5px dashed var(--blue); border-radius:12px; margin:8px 0; }
   .ph { width:48px; height:48px; border-radius:10px; object-fit:cover; border:1px solid var(--line); flex:none; align-self:center; }
   .pv { width:96px; height:96px; border-radius:14px; object-fit:cover; border:1.5px solid var(--line); flex:none; background:#fff; }
+    .back { border:0; background:none; color:var(--blue); font:700 13px "Noto Sans",sans-serif; padding:6px 0; margin-bottom:4px; cursor:pointer; }
+  .hero { display:grid; grid-template-columns:1fr; gap:28px; padding:8px 0 36px; }
+  @media (min-width:820px) { .hero { grid-template-columns:1.1fr .9fr; align-items:center; gap:56px; padding:24px 0 48px; } }
+  .hero-icon { border-radius:18px; display:block; margin-bottom:18px; }
+  .badge { display:inline-block; border:1.5px solid var(--blue); color:var(--blue); border-radius:999px; padding:4px 12px; font-size:12px; font-weight:700; margin-bottom:14px; }
+  h1.big { font-size:clamp(32px,6.2vw,54px); line-height:1.05; letter-spacing:-1.4px; margin:0 0 16px; }
+  .hl { color:var(--blue); }
+  .lead { font-size:17px; line-height:1.55; color:var(--muted); margin:0 0 22px; max-width:520px; }
+  .cta { display:flex; gap:12px; flex-wrap:wrap; }
+  .cta .btn { width:auto; padding:0 26px; }
+  .hcard { border:1.5px solid var(--line); border-radius:22px; padding:18px; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; margin-top:14px; font-size:12px; color:var(--muted); font-weight:500; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; }
+  .bars { height:30px; margin:8px 0 36px; opacity:.16; background:repeating-linear-gradient(90deg,var(--ink) 0 3px,transparent 3px 7px,var(--ink) 7px 8px,transparent 8px 12px,var(--ink) 12px 17px,transparent 17px 20px,var(--ink) 20px 22px,transparent 22px 27px); }
+  .band { background:var(--blue); color:#fff; border-radius:26px; padding:34px 26px; margin:0 0 44px; }
+  .band h2 { color:#fff; margin:0 0 24px; }
+  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:26px; }
+  .num { font-size:46px; font-weight:700; letter-spacing:-1.5px; line-height:1; margin-bottom:10px; }
+  .st { font-size:17px; font-weight:700; margin-bottom:6px; }
+  .sd { font-size:14px; line-height:1.55; opacity:.92; }
+  .sec { margin:0 0 44px; }
+  .sec h2, .band h2 { font-size:28px; letter-spacing:-0.6px; }
+  .sec h2 { margin:0 0 18px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; }
+  .c3 { border:1.5px solid var(--line); border-radius:20px; padding:20px; }
+  .c3 b { display:block; font-size:17px; margin-bottom:6px; }
+  .c3 span { font-size:14px; line-height:1.55; color:var(--muted); }
+  .pills { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { border:1.5px solid var(--ink); border-radius:999px; padding:9px 18px; font-weight:700; }
+  .list { margin:0; padding-left:18px; line-height:1.7; color:var(--muted); }
+  .final { text-align:center; border:1.5px solid var(--line); border-radius:26px; padding:40px 20px; margin-bottom:24px; }
+  .final h2 { font-size:30px; letter-spacing:-0.8px; margin:0 0 10px; }
+  .final p { color:var(--muted); margin:0 auto 22px; max-width:480px; line-height:1.55; }
+  .final .cta { justify-content:center; }
 </style>
 </head>
 <body>
