@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Inventario</title>
+<title>Inventario Hogar</title>
+<meta name="description" content="Inventario del hogar: escanea, ordena y usa primero lo que vence primero.">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1F4E9C">
 <link rel="icon" href="/icons/icon-192.png">
@@ -15,6 +16,8 @@
   * { box-sizing:border-box; }
   body { margin:0; background:#fff; color:var(--ink); font-family:"Noto Sans",system-ui,sans-serif; font-size:15px; }
   .top { height:60px; padding:0 20px; display:flex; align-items:center; max-width:480px; margin:0 auto; }
+  body.landing .top { max-width:960px; }
+  main.wide { max-width:960px; padding-bottom:40px; }
   .logo { font-weight:700; font-size:19px; letter-spacing:-0.3px; }
   .lang { margin-left:auto; display:flex; border:1.5px solid var(--blue); border-radius:999px; overflow:hidden; }
   .lang button { border:0; background:#fff; color:var(--blue); font:700 12px "Noto Sans",sans-serif; padding:7px 12px; min-height:34px; cursor:pointer; }
