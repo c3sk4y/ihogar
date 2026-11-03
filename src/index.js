@@ -340,8 +340,6 @@ async function editBatch(req, env, u, bid) {
   if (name.length < 1 || name.length > 80) return json({ error: "invalid_name" }, 400);
   if (!CATS.includes(b.category)) return json({ error: "invalid_category" }, 400);
   if (!UNITS.includes(b.unit)) return json({ error: "invalid_unit" }, 400);
-  const qty = Number(b.quantity);
-  if (!(qty > 0 && qty <= 1000000)) return json({ error: "invalid_quantity" }, 400);
   const packLabel = b.pack_label ? String(b.pack_label) : null;
   if (packLabel && !PACKS.includes(packLabel)) return json({ error: "invalid_pack" }, 400);
   const packSize = b.pack_size ? Number(b.pack_size) : null;
@@ -350,6 +348,10 @@ async function editBatch(req, env, u, bid) {
   const itemUnit = itemAmount ? String(b.item_unit || "") : null;
   if (itemAmount !== null && !(itemAmount > 0 && itemAmount <= 100000 && ITEM_UNITS.includes(itemUnit))) return json({ error: "invalid_pack" }, 400);
   const notes = typeof b.notes === "string" && b.notes.trim() ? b.notes.trim().slice(0, 120) : null;
+  const n = Number(b.quantity);
+  if (!(n > 0 && n <= 100000)) return json({ error: "invalid_quantity" }, 400);
+  const qty = Math.round(n * (packSize || 1) * 1e6) / 1e6;
+  if (qty > 1000000) return json({ error: "invalid_quantity" }, 400);
   const min = Number(b.min_stock || 0);
   if (!(min >= 0 && min <= 1000000)) return json({ error: "invalid_quantity" }, 400);
   if (!isDate(b.purchase_date)) return json({ error: "invalid_date" }, 400);
