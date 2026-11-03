@@ -221,6 +221,81 @@ function mountCaptcha() {
   };
   go();
 }
+  const LAND = {
+  es: {
+    badge:"Inventario del hogar", h1a:"Sabe qu\u00e9 tienes en casa y", h1b:"usa primero lo que vence primero.",
+    lead:"Una app para registrar, ordenar y cuidar los alimentos, remedios y productos de tu hogar. Escaneas el c\u00f3digo de barras con tu celular y ella hace el resto.",
+    cta1:"Crear mi hogar", cta2:"Ya tengo cuenta", note:"Versi\u00f3n de prueba. Necesitas internet para usarla.",
+    card_t:"Qu\u00e9 hay en casa", card_s:"Ordenado por vencimiento", tag:"Usar primero", legend:["Vigente", "Por vencer", "Vencido"],
+    rows:[
+      { c:"red", n:"Yogur natural", m:"Refrigerador \u00b7 1 pack de 4 unid. \u00d7 120 g", x:"Vencido hace 2 d\u00edas" },
+      { c:"yellow", n:"Leche entera", m:"Refrigerador \u00b7 1 caja de 900 ml", x:"Vence en 3 d\u00edas", tag:true },
+      { c:"green", n:"Paracetamol 500 mg", m:"Botiqu\u00edn \u00b7 1 caja de 16 comprimidos", x:"Vence 03/2027" },
+      { c:"green", n:"Arroz", m:"Despensa \u00b7 2 bolsas de 1 kg", x:"Vence 12/2027" } ],
+    how_t:"C\u00f3mo funciona",
+    how:[ ["Escanea", "Apunta la c\u00e1mara al c\u00f3digo de barras. La app reconoce el producto y completa sus datos. Si no lo conoce, lo escribes una vez y lo recuerda."],
+          ["Anota lo b\u00e1sico", "Cu\u00e1ntos hay, d\u00f3nde lo guardas y cu\u00e1ndo vence. Si quieres, agregas una foto."],
+          ["Ve qu\u00e9 usar primero", "La lista se ordena sola: lo que vence primero aparece primero. Es el m\u00e9todo PEPS: primero en entrar, primero en salir."],
+          ["Usa y descuenta", "Cuando usas algo, la app lo descuenta del lote que vence antes. Siempre sabes cu\u00e1nto queda."] ],
+    why_t:"\u00bfPara qu\u00e9 sirve?",
+    why:[ ["Menos desperdicio", "Los colores te muestran qu\u00e9 ya venci\u00f3 y qu\u00e9 vence pronto, antes de que se pierda."],
+          ["Compras m\u00e1s inteligentes", "Sabes qu\u00e9 tienes antes de ir al supermercado, y el filtro de stock bajo te dice qu\u00e9 reponer."],
+          ["Todo el hogar al d\u00eda", "Hasta 3 personas comparten el mismo inventario, y cada producto tiene su due\u00f1o."] ],
+    what_t:"Qu\u00e9 puedes guardar", cats:["Alimentos", "Limpieza", "Insumos", "Remedios"], what_n:"Hoy est\u00e1 pensada para el hogar. Oficina y taller llegar\u00e1n despu\u00e9s.",
+    soon_t:"Pr\u00f3ximamente",
+    soon:["Modo cocina: eliges los ingredientes, se descuentan solos y guardas lo cocinado en el refrigerador.", "Regalar productos a otra persona de tu hogar.", "Informes de consumo, compras y desperdicio."],
+    priv_t:"Tu informaci\u00f3n, protegida",
+    priv:["Tus datos viven en la nube, no en tu celular.", "Entras con verificaci\u00f3n de seguridad y, tras 3 intentos fallidos, el acceso se bloquea 15 minutos.", "Solo las personas de tu hogar ven su inventario."],
+    inst_t:"Inst\u00e1lala como una app", inst:"En el men\u00fa de tu navegador elige Instalar app y aparecer\u00e1 en tu pantalla de inicio, sin pasar por ninguna tienda.",
+    final_t:"Empieza con tu primer producto", final_s:"Crea tu hogar, invita a tu familia y deja de preguntarte qu\u00e9 hay en la despensa.",
+    foot:"Inventario Hogar \u00b7 versi\u00f3n de prueba", back:"Inicio"
+  },
+  en: {
+    badge:"Home inventory", h1a:"Know what you have at home and", h1b:"use first what expires first.",
+    lead:"An app to register, organize and look after the food, medicines and supplies in your home. You scan the barcode with your phone and it does the rest.",
+    cta1:"Create my home", cta2:"I already have an account", note:"Trial version. You need internet to use it.",
+    card_t:"What is at home", card_s:"Sorted by expiry", tag:"Use first", legend:["In date", "Expiring soon", "Expired"],
+    rows:[
+      { c:"red", n:"Plain yogurt", m:"Refrigerator \u00b7 1 pack of 4 units \u00d7 120 g", x:"Expired 2 days ago" },
+      { c:"yellow", n:"Whole milk", m:"Refrigerator \u00b7 1 box of 900 ml", x:"Expires in 3 days", tag:true },
+      { c:"green", n:"Paracetamol 500 mg", m:"Medicine cabinet \u00b7 1 box of 16 tablets", x:"Expires 03/2027" },
+      { c:"green", n:"Rice", m:"Pantry \u00b7 2 bags of 1 kg", x:"Expires 12/2027" } ],
+    how_t:"How it works",
+    how:[ ["Scan", "Point the camera at the barcode. The app recognizes the product and fills in its details. If it does not know it, you type it once and it remembers."],
+          ["Note the basics", "How many there are, where you keep them and when they expire. You can add a photo."],
+          ["See what to use first", "The list sorts itself: what expires first comes first. This is the FIFO method: first in, first out."],
+          ["Use and deduct", "When you use something, the app deducts it from the batch that expires sooner. You always know how much is left."] ],
+    why_t:"What is it for?",
+    why:[ ["Less waste", "Colors show what has already expired and what expires soon, before it is lost."],
+          ["Smarter shopping", "You know what you have before going to the supermarket, and the low-stock filter tells you what to restock."],
+          ["The whole home up to date", "Up to 3 people share the same inventory, and each product has an owner."] ],
+    what_t:"What you can store", cats:["Food", "Cleaning", "Supplies", "Medicines"], what_n:"For now it is designed for the home. Office and workshop will come later.",
+    soon_t:"Coming soon",
+    soon:["Cooking mode: you pick the ingredients, they are deducted automatically and you store the meal in the refrigerator.", "Gift products to another person in your home.", "Reports on consumption, purchases and waste."],
+    priv_t:"Your information, protected",
+    priv:["Your data lives in the cloud, not on your phone.", "You sign in with a security check and, after 3 failed attempts, access is locked for 15 minutes.", "Only the people in your home can see its inventory."],
+    inst_t:"Install it as an app", inst:"In your browser menu choose Install app and it will appear on your home screen, without going through any store.",
+    final_t:"Start with your first product", final_s:"Create your home, invite your family and stop wondering what is in the pantry.",
+    foot:"Inventario Hogar \u00b7 trial version", back:"Home"
+  }
+};
+function landingView() {
+  const L = LAND[lang], col = { red:"var(--red)", yellow:"var(--yellow)", green:"var(--green)" }, sq = ["var(--green)", "var(--yellow)", "var(--red)"];
+  const rows = L.rows.map((r) => '<div class="item"><div class="bar" style="background:' + col[r.c] + '"></div><div class="info"><div class="val">' + r.n + '</div><div class="t" style="margin-top:2px">' + r.m + '</div><div class="x">' + r.x + "</div></div>" + (r.tag ? '<span class="tag" style="align-self:center">' + L.tag + "</span>" : "") + "</div>").join("");
+  const legend = '<div class="legend">' + L.legend.map((x, i) => '<span><i style="background:' + sq[i] + '"></i>' + x + "</span>").join("") + "</div>";
+  const steps = L.how.map((s, i) => '<div><div class="num">' + (i + 1) + '</div><div class="st">' + s[0] + '</div><div class="sd">' + s[1] + "</div></div>").join("");
+  const why = L.why.map((c) => '<div class="c3"><b>' + c[0] + "</b><span>" + c[1] + "</span></div>").join("");
+  const cta = '<div class="cta"><button class="btn p" data-a="go_register">' + L.cta1 + '</button><button class="btn s" data-a="go_login">' + L.cta2 + "</button></div>";
+  app.innerHTML =
+    '<section class="hero"><div><img class="hero-icon" src="/icons/icon-512.png" width="72" height="72" alt=""><span class="badge">' + L.badge + '</span><h1 class="big">' + L.h1a + ' <span class="hl">' + L.h1b + '</span></h1><p class="lead">' + L.lead + "</p>" + cta + '<p class="t">' + L.note + "</p></div>" +
+    '<div class="hcard"><div class="row" style="justify-content:space-between;margin-bottom:2px"><span class="val">' + L.card_t + '</span><span class="t" style="margin:0">' + L.card_s + "</span></div>" + rows + legend + "</div></section>" +
+    '<div class="bars" aria-hidden="true"></div>' +
+    '<section class="band"><h2>' + L.how_t + '</h2><div class="steps">' + steps + "</div></section>" +
+    '<section class="sec"><h2>' + L.why_t + '</h2><div class="cards">' + why + "</div></section>" +
+    '<section class="sec"><h2>' + L.what_t + '</h2><div class="pills">' + L.cats.map((c) => '<span class="pill">' + c + "</span>").join("") + '</div><p class="t" style="margin:0">' + L.what_n + "</p></section>" +
+    '<section class="sec cards"><div class="c3"><b>' + L.soon_t + '</b><ul class="list">' + L.soon.map((x) => "<li>" + x + "</li>").join("") + '</ul></div><div class="c3"><b>' + L.priv_t + '</b><ul class="list">' + L.priv.map((x) => "<li>" + x + "</li>").join("") + '</ul></div><div class="c3"><b>' + L.inst_t + "</b><span>" + L.inst + "</span></div></section>" +
+    '<section class="final"><h2>' + L.final_t + "</h2><p>" + L.final_s + "</p>" + cta + '</section><p class="t" style="text-align:center">' + L.foot + "</p>";
+}
 function accessView() {
   const t = T[lang], reg = mode === "register";
   app.innerHTML = '<h1>' + (reg ? t.register : t.login) + '</h1>' +
