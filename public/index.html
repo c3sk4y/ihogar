@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventario</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1F4E9C">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<style>
+  :root { --ink:#16181D; --muted:#4A4F5A; --line:#D9DCE3; --blue:#1F4E9C; --green:#2E8B57; --yellow:#F2B705; --red:#C8372D; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font-family:"Noto Sans",system-ui,sans-serif; font-size:15px; }
+  .top { height:60px; padding:0 20px; display:flex; align-items:center; max-width:480px; margin:0 auto; }
+  .logo { font-weight:700; font-size:19px; letter-spacing:-0.3px; }
+  .lang { margin-left:auto; display:flex; border:1.5px solid var(--blue); border-radius:999px; overflow:hidden; }
+  .lang button { border:0; background:#fff; color:var(--blue); font:700 12px "Noto Sans",sans-serif; padding:7px 12px; min-height:34px; cursor:pointer; }
+  .lang button.on { background:var(--blue); color:#fff; }
+  main { max-width:480px; margin:0 auto; padding:8px 20px 100px; }
+  h1 { font-size:24px; letter-spacing:-0.4px; margin:6px 0 14px; }
+  .tabs { display:flex; margin-bottom:18px; }
+  .tab { flex:1; min-height:44px; border:0; background:#fff; font:700 14px "Noto Sans",sans-serif; color:var(--muted); border-bottom:3px solid var(--line); cursor:pointer; }
+  .tab.on { color:var(--blue); border-bottom-color:var(--blue); }
+  .f { margin-bottom:14px; }
+  .lbl { font-size:11px; color:var(--muted); font-weight:500; margin-bottom:2px; display:block; }
+  input, select { display:block; width:100%; border:1.5px solid var(--line); border-radius:12px; padding:10px 12px; min-height:48px; font:500 15px "Noto Sans",sans-serif; color:var(--ink); background:#fff; }
+  input:focus, select:focus, button:focus-visible { outline:2px solid var(--blue); outline-offset:1px; }
+  .btn { border:0; border-radius:14px; font:700 15px "Noto Sans",sans-serif; min-height:52px; width:100%; cursor:pointer; }
+  .p { background:var(--blue); color:#fff; } .p:disabled { opacity:.6; cursor:default; }
+  .s { background:#fff; color:var(--blue); border:1.5px solid var(--blue); }
+  .d { background:var(--red); color:#fff; }
+  .err { color:var(--red); font-weight:700; font-size:13px; margin:0 0 14px; }
+  .ok { color:var(--ink); font-weight:700; font-size:13px; margin:0 0 14px; display:flex; gap:8px; align-items:center; }
+  .t { font-size:12px; color:var(--muted); margin-top:12px; }
+  .card { border:1.5px solid var(--line); border-radius:18px; padding:16px; margin-bottom:16px; }
+  .row { display:flex; gap:12px; align-items:center; }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--green); flex:none; }
+  .val { font-size:15px; font-weight:700; }
+  #cf { margin-bottom:14px; min-height:65px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .chip { min-height:38px; padding:0 14px; border-radius:999px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font:700 13px "Noto Sans",sans-serif; cursor:pointer; }
+  .chip.on { background:var(--blue); color:#fff; }
+  .item { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .bar { width:6px; border-radius:3px; flex:none; }
+  .info { flex:1; min-width:0; }
+  .x { font-size:13px; font-weight:500; margin-top:4px; }
+  .side { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; gap:8px; }
+  .tag { background:var(--blue); color:#fff; font-size:11px; font-weight:700; border-radius:999px; padding:4px 10px; white-space:nowrap; }
+  .mini { min-height:38px; padding:0 16px; border-radius:999px; border:1.5px solid var(--blue); background:#fff; color:var(--blue); font:700 13px "Noto Sans",sans-serif; cursor:pointer; }
+  .panel { background:#fff; border:1.5px solid var(--line); border-radius:14px; padding:14px; margin:8px 0 4px; }
+  .two { display:flex; gap:10px; margin-top:12px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid .full { grid-column:1 / 3; }
+  .nav { position:fixed; left:0; right:0; bottom:0; height:68px; background:#fff; border-top:1px solid var(--line); display:flex; max-width:480px; margin:0 auto; }
+  .nav:empty { display:none; }
+  [hidden] { display:none !important; }
+  .nav button { flex:1; border:0; background:#fff; color:var(--muted); font:500 11px "Noto Sans",sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border-top:3px solid transparent; cursor:pointer; }
+  .nav button.on { color:var(--blue); font-weight:700; border-top-color:var(--blue); }
+  .nav svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  #scan { position:fixed; inset:0; background:var(--ink); z-index:20; display:flex; flex-direction:column; }
+  #scan[hidden] { display:none; }
+  #scan video { flex:1; width:100%; min-height:0; object-fit:cover; }
+  .frame { position:absolute; left:12%; right:12%; top:28%; height:30%; border:3px solid #fff; border-radius:14px; pointer-events:none; }
+  .sbar { padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px)); color:#fff; background:var(--ink); }
+  .sbar .btn { background:#fff; color:var(--ink); margin-top:12px; }
+  .mem { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .av { width:40px; height:40px; border-radius:50%; background:var(--blue); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; }
+  .link { word-break:break-all; font-size:13px; font-weight:500; padding:10px 12px; border:1.5px dashed var(--blue); border-radius:12px; margin:8px 0; }
+  .ph { width:48px; height:48px; border-radius:10px; object-fit:cover; border:1px solid var(--line); flex:none; align-self:center; }
+  .pv { width:96px; height:96px; border-radius:14px; object-fit:cover; border:1.5px solid var(--line); flex:none; background:#fff; }
+</style>
+</head>
+<body>
+<div class="top"><span class="logo">Inventario</span>
+  <div class="lang"><button id="es" aria-label="Español">ES</button><button id="en" aria-label="English">EN</button></div></div>
+<main id="app"></main>
+<nav class="nav" id="nav"></nav>
+<input type="file" id="ph_cam" accept="image/*" capture="environment" hidden>
+<input type="file" id="ph_gal" accept="image/*" hidden>
+<div id="scan" hidden><video id="scan_v" playsinline muted></video><div class="frame"></div>
+  <div class="sbar"><div id="scan_hint" style="font-weight:700"></div><div id="scan_err" style="margin-top:6px;font-size:13px"></div><button class="btn" id="scan_close"></button></div></div>
+<script>
+const SITE_KEY = "0x4AAAAAAFrhgjVPdQ5D-xno";
+const T = {
+  es: {
+    login:"Ingresar", register:"Crear cuenta", email:"Correo", password:"Contrase\u00f1a", home:"Nombre del hogar",
+    first:"Al crear tu cuenta se crea tu hogar y quedas como gestor. Podr\u00e1s invitar hasta 2 personas m\u00e1s.",
+    rules:"Tras 3 intentos fallidos, el acceso se bloquea 15 minutos. Un correo pertenece a una sola cuenta y a un solo hogar.",
+    wait:"Un momento...", out:"Cerrar sesi\u00f3n", role_manager:"Gestor", role_member:"Integrante", members:"Integrantes", of:"de", loading:"Cargando...",
+    nav:{ inv:"Inventario", add:"Agregar", home:"Hogar" },
+    filters:{ all:"Todo", soon:"Por vencer", low:"Stock bajo", expired:"Vencidos" },
+    cat:{ food:"Alimentos", cleaning:"Limpieza", supplies:"Insumos", medicine:"Remedios" },
+    unit:{ unit:"unid.", kg:"kg", g:"g", l:"litro(s)", ml:"ml", dose:"dosis", sachet:"bolsitas", tablet:"comprimidos" },
+    pack:{ papercup:["vaso de carton","vasos de carton"], bag:["bolsa","bolsas"], wrap:["empaque","empaques"], box:["caja","cajas"], pack:["pack","packs"], bottle:["botella","botellas"], jar:["tarro","tarros"], can:["lata","latas"], tube:["tubo","tubos"] },
+    loc:{ pantrykitchen:"Despensa de Cocina", cupboarddiningroom:"Alacena de Cocina", diningroom:"Comedor", cupboard:"Alacena", kitchen:"Cocina", pantry:"Despensa", fridge:"Refrigerador", bathroom:"Ba\u00f1o", medicine:"Botiqu\u00edn", storage:"Bodega" },
+        f_name:"Descripci\u00f3n del producto", f_notes:"Detalle de esta compra (opcional)", notes_ph:"Ej.: variados sabores", f_item:"Contenido de cada unidad (opcional)", total:"Total", left:"restantes", of_pack:"de", use_full:"Envase completo", f_cat:"Categor\u00eda", f_qty:"Cantidad de envases", f_unit:"Unidad del contenido", f_pack:"Formato", f_pack_none:"Sin formato (suelto)", f_content:"Contenido por envase",
+    pack_help:"Ejemplos: 1 bolsa de jam\u00f3n de 100 g = cantidad 1, formato bolsa, contenido 100 g. 1 caja de leche de 900 ml = cantidad 1, formato caja, contenido 900 ml. 1 pack de 12 yogures de 70 ml = cantidad 1, formato pack, contenido 12 unid., cada unidad 70 ml, detalle: variados sabores.",
+    photo:"Foto de referencia", photo_take:"Tomar foto", photo_pick:"Elegir de galer\u00eda", photo_change:"Cambiar foto",
+    loc_new:"+ Nueva ubicaci\u00f3n", loc_name:"Nombre de la ubicaci\u00f3n", loc_title:"Ubicaciones", loc_add:"Agregar", loc_rename:"Renombrar", loc_del:"Eliminar",
+    loc_del_q:"\u00bfEliminar esta ubicaci\u00f3n?", loc_rename_q:"Nuevo nombre",
+    edit:"Editar", edit_title:"Editar lote", edit_save:"Guardar cambios", edit_note:"Los datos del producto se cambian en todos sus lotes.", f_qty_edit:"Cantidad actual (en la unidad)",
+    empty_soon:"Nada vence en los pr\u00f3ximos 30 d\u00edas.", empty_low:"No hay productos con stock bajo. Define un stock m\u00ednimo al agregar o editar un producto.", empty_expired:"No hay productos vencidos.",
+    photo_failed:"No se pudo traer la foto del producto; puedes tomarla t\u00fa.",
+    del:"Eliminar lote", del_q:"\u00bfEliminar este lote? Se borra sin registrar merma. \u00dasalo solo para corregir errores.", f_loc:"Ubicaci\u00f3n", f_buy:"Fecha de compra",
+    f_exp:"Caducidad (opcional)", f_exp_req:"Caducidad (obligatoria)", f_min:"Stock m\u00ednimo (opcional)", f_bar:"C\u00f3digo de barras (opcional)",
+    add_title:"Agregar producto", save:"Guardar en inventario", saved:"Guardado en el inventario.",
+    inv_title:"Inventario", fifo:"Orden FIFO: lo que vence primero, arriba.", empty:"No hay productos todav\u00eda. Agrega el primero.",
+    use:"Usar", use_first:"Usar primero", confirm:"Confirmar", cancel:"Cancelar", discard:"Descartar", discard_q:"\u00bfDescartar este lote como merma?",
+    qty_use:"Cantidad a usar", fifo_use:"Se descuenta del lote que vence primero.", low_t:"Stock bajo", no_exp:"Sin caducidad", exp_today:"Vence hoy",
+    exp_in:(n)=>"Vence en "+n+(n===1?" d\u00eda":" d\u00edas"), exp_ago:(n)=>"Vencido hace "+n+(n===1?" d\u00eda":" d\u00edas"), exp_on:(d)=>"Vence "+d,
+    scan:"Escanear c\u00f3digo de barras", scan_hint:"Apunta al c\u00f3digo de barras", scan_close:"Cerrar", scan_noperm:"No se pudo usar la c\u00e1mara. Revisa el permiso del navegador.", scan_fail:"No se pudo iniciar el lector. Ingresa el c\u00f3digo a mano.",
+    look_home:"Producto conocido en tu hogar.", look_off:"Datos de Open Food Facts. Rev\u00edsalos antes de guardar.", look_none:"No encontrado. Completa los datos a mano.",
+    invited:"Te invitaron a un hogar. Usa el mismo correo de la invitaci\u00f3n.", invite_t:"Invitar a una persona", invite_btn:"Crear invitaci\u00f3n", invite_note:"Comparte este enlace con la persona. Vence en 7 d\u00edas.",
+    copy:"Copiar enlace", copied:"Enlace copiado.", pending:"Invitaciones pendientes", make_mgr:"Hacer gestor", mgr_q:"\u00bfTraspasar el rol de gestor a esta persona?", full:"El hogar est\u00e1 completo.",
+    e:{ invalid_credentials:"Correo o contrase\u00f1a incorrectos. Te quedan {n} intentos.", locked:"Acceso bloqueado. Intenta de nuevo en {m} minutos.",
+        captcha:"Completa la verificaci\u00f3n de seguridad.", email_in_use:"Este correo ya tiene una cuenta.", weak_password:"La contrase\u00f1a debe tener al menos 10 caracteres.",
+        invalid_email:"Escribe un correo v\u00e1lido.", invalid_home:"Escribe un nombre para el hogar (hasta 60 caracteres).", network:"Sin conexi\u00f3n. Intenta de nuevo.",
+        server:"Error del servidor. Intenta de nuevo.", server_config:"Falta configurar el servidor.",
+        invalid_name:"Escribe un nombre (hasta 80 caracteres).", invalid_quantity:"La cantidad debe ser mayor que 0.", invalid_date:"Revisa las fechas.",
+        expiry_required:"Alimentos y remedios necesitan fecha de caducidad.", invalid_barcode:"El c\u00f3digo de barras debe tener de 6 a 14 d\u00edgitos.",
+        invalid_location:"Elige una ubicaci\u00f3n.", insufficient:"No hay suficiente cantidad. Disponible: {n}.",
+        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"Solo el gestor puede hacer esto.", invalid_person:"Persona no v\u00e1lida.", invalid_pack:"Revisa el envase y su contenido.", in_use:"No se puede eliminar: est\u00e1 en uso.", invalid_photo:"No se pudo usar esa imagen.", location_exists:"Ya existe una ubicaci\u00f3n con ese nombre.", location_in_use:"Hay productos en esa ubicaci\u00f3n. Mu\u00e9velos antes de eliminarla.", invalid_location_name:"Escribe un nombre (hasta 40 caracteres).", barcode_in_use:"Ese c\u00f3digo de barras ya pertenece a otro producto." }
+  },
+  en: {
+    login:"Sign in", register:"Create account", email:"Email", password:"Password", home:"Home name",
+    first:"Creating your account creates your home and makes you the manager. You can invite up to 2 more people.",
+    rules:"After 3 failed attempts, access is locked for 15 minutes. One email belongs to one account and one home.",
+    wait:"One moment...", out:"Sign out", role_manager:"Manager", role_member:"Member", members:"Members", of:"of", loading:"Loading...",
+    nav:{ inv:"Inventory", add:"Add", home:"Home" },
+    filters:{ all:"All", soon:"Expiring", low:"Low stock", expired:"Expired" },
+    cat:{ food:"Food", cleaning:"Cleaning", supplies:"Supplies", medicine:"Medicines" },
+    unit:{ unit:"units", kg:"kg", g:"g", l:"liter(s)", ml:"ml", dose:"doses", sachet:"sachets", tablet:"tablets" },
+    pack:{ papercup:["paper cup","paper cups"], bag:["bag","bags"], wrap:["wrapper","wrappers"], box:["box","boxes"], pack:["pack","packs"], bottle:["bottle","bottles"], jar:["jar","jars"], can:["can","cans"], tube:["tube","tubes"] },
+    loc:{ cupboarddiningroom:"Cupboard Dining room", pantrykitchen:"Kitchen Pantry", kitchen:"Kitchen", pantry:"Pantry", fridge:"Refrigerator", bathroom:"Bathroom", medicine:"Medicine cabinet", storage:"Storage room" },
+    f_name:"Product description", f_notes:"Details of this purchase (optional)", notes_ph:"E.g.: assorted flavors", f_item:"Content of each unit (optional)", total:"Total", left:"left", of_pack:"of", use_full:"Whole package", f_cat:"Category", f_qty:"Number of packages", f_unit:"Content unit", f_pack:"Format", f_pack_none:"No format (loose)", f_content:"Content per package",
+    pack_help:"Examples: 1 bag of ham of 100 g = quantity 1, format bag, content 100 g. 1 box of milk of 900 ml = quantity 1, format box, content 900 ml. 1 pack of 12 yogurts of 70 ml = quantity 1, format pack, content 12 units, each unit 70 ml, details: assorted flavors.",
+    photo:"Reference photo", photo_take:"Take photo", photo_pick:"Choose from gallery", photo_change:"Change photo",
+    loc_new:"+ New location", loc_name:"Location name", loc_title:"Locations", loc_add:"Add", loc_rename:"Rename", loc_del:"Delete",
+    loc_del_q:"Delete this location?", loc_rename_q:"New name",
+    edit:"Edit", edit_title:"Edit batch", edit_save:"Save changes", edit_note:"Product details change in all its batches.", f_qty_edit:"Current quantity (in the unit)",
+    empty_soon:"Nothing expires in the next 30 days.", empty_low:"No low-stock products. Set a minimum stock when adding or editing a product.", empty_expired:"No expired products.",
+    photo_failed:"The product photo could not be fetched; you can take one yourself.",
+    del:"Delete batch", del_q:"Delete this batch? It is removed without recording waste. Use only to fix mistakes.", f_loc:"Location", f_buy:"Purchase date",
+    f_exp:"Expiry date (optional)", f_exp_req:"Expiry date (required)", f_min:"Minimum stock (optional)", f_bar:"Barcode (optional)",
+    add_title:"Add product", save:"Save to inventory", saved:"Saved to inventory.",
+    inv_title:"Inventory", fifo:"FIFO order: what expires first, on top.", empty:"No products yet. Add the first one.",
+    use:"Use", use_first:"Use first", confirm:"Confirm", cancel:"Cancel", discard:"Discard", discard_q:"Discard this batch as waste?",
+    qty_use:"Quantity to use", fifo_use:"Deducted from the batch that expires first.", low_t:"Low stock", no_exp:"No expiry date", exp_today:"Expires today",
+    exp_in:(n)=>"Expires in "+n+(n===1?" day":" days"), exp_ago:(n)=>"Expired "+n+(n===1?" day":" days")+" ago", exp_on:(d)=>"Expires "+d,
+    scan:"Scan barcode", scan_hint:"Point at the barcode", scan_close:"Close", scan_noperm:"Could not use the camera. Check the browser permission.", scan_fail:"Could not start the reader. Enter the code by hand.",
+    look_home:"Known product in your home.", look_off:"Data from Open Food Facts. Review before saving.", look_none:"Not found. Fill in the details by hand.",
+    invited:"You were invited to a home. Use the same email as the invitation.", invite_t:"Invite a person", invite_btn:"Create invitation", invite_note:"Share this link with the person. It expires in 7 days.",
+    copy:"Copy link", copied:"Link copied.", pending:"Pending invitations", make_mgr:"Make manager", mgr_q:"Hand the manager role to this person?", full:"The home is full.",
+    e:{ invalid_credentials:"Incorrect email or password. {n} attempts left.", locked:"Access locked. Try again in {m} minutes.",
+        captcha:"Complete the security check.", email_in_use:"This email already has an account.", weak_password:"Password must be at least 10 characters.",
+        invalid_email:"Enter a valid email.", invalid_home:"Enter a home name (up to 60 characters).", network:"No connection. Try again.",
+        server:"Server error. Try again.", server_config:"Server is not configured.",
+        invalid_name:"Enter a name (up to 80 characters).", invalid_quantity:"Quantity must be greater than 0.", invalid_date:"Check the dates.",
+        expiry_required:"Food and medicines need an expiry date.", invalid_barcode:"Barcode must have 6 to 14 digits.",
+        invalid_location:"Choose a location.", insufficient:"Not enough quantity. Available: {n}.",
+        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"Only the manager can do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used.", location_exists:"A location with that name already exists.", location_in_use:"There are products in that location. Move them before deleting it.", invalid_location_name:"Enter a name (up to 40 characters).", barcode_in_use:"That barcode already belongs to another product." }
+  }
+};
+const SOON_DAYS = 30;
+const pad = (n) => String(n).padStart(2, "0");
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+const daysTo = (d) => Math.round((Date.parse(d + "T00:00:00") - Date.parse(today() + "T00:00:00")) / 864e5);
+const fmtDate = (d) => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4);
+const fmtQ = (q) => String(Math.round(q * 1000) / 1000);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const ICON = {
+  inv:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l8-3 8 3-8 3-8-3zM4 7v10l8 3 8-3V7M12 10v10"/></svg>',
+  add:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7M6 10v10h12V10"/></svg>'
+};
+let lang = "es", mode = "login", user = undefined, token = "", err = "", busy = false, vals = { email:"", password:"", home:"" };
+let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, actErr = "", addMsg = "", addErr = "", lookupMsg = "", hm = null, invLink = "", homeErr = "", homeMsg = "", inviteToken = "";
+let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"", item_amount:"", item_unit:"", notes:"" };
+let editId = "";
+let photoPid = "", photoVer = {};
+const app = document.getElementById("app"), nav = document.getElementById("nav");
+
+function msg(code, d) {
+  const m = T[lang].e[code] || T[lang].e.server;
+  return m.replace("{n}", d && (d.attempts_left !== undefined ? d.attempts_left : fmtQ(d.available || 0))).replace("{m}", d && d.retry_after ? Math.ceil(d.retry_after / 60) : "");
+}
+async function post(path, body) {
+  const r = await fetch(path, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify(body) });
+  let d = {}; try { d = await r.json(); } catch (e) {}
+  if (r.status === 401 && user && d.error === "unauthorized") { user = null; render(); }
+  return { ok: r.ok, d };
+}
+async function get(path) {
+  const r = await fetch(path); let d = {}; try { d = await r.json(); } catch (e) {}
+  if (r.status === 401 && user) { user = null; render(); }
+  return { ok: r.ok, d };
+}
+async function loadData() {
+  const [l, p, i, hh] = await Promise.all([get("/api/locations"), get("/api/products"), get("/api/inventory"), get("/api/home")]);
+  if (l.ok) locs = l.d.locations;
+  if (p.ok) prods = p.d.products;
+  if (i.ok) inv = i.d.items;
+  if (hh.ok) hm = hh.d;
+  if (!form.location_id && locs.length) { const pa = locs.find((x) => x.name === "pantry"); form.location_id = (pa || locs[0]).id; }
+}
+async function loadMe() {
+  try { const r = await fetch("/api/me"); user = r.ok ? await r.json() : null; } catch (e) { user = null; }
+  if (user) { try { await loadData(); } catch (e) {} }
+  render();
+}
+function mountCaptcha() {
+  const el = document.getElementById("cf");
+  if (!el) return;
+  const go = () => {
+    if (!window.turnstile) return setTimeout(go, 200);
+    token = "";
+    window.turnstile.render(el, { sitekey: SITE_KEY, language: lang, callback: (t) => { token = t; }, "expired-callback": () => { token = ""; } });
+  };
+  go();
+}
+function accessView() {
+  const t = T[lang], reg = mode === "register";
+  app.innerHTML = '<h1>' + (reg ? t.register : t.login) + '</h1>' +
+    '<div class="tabs"><button class="tab ' + (reg ? "" : "on") + '" id="tl">' + t.login + '</button><button class="tab ' + (reg ? "on" : "") + '" id="tr">' + t.register + '</button></div>' +
+    '<div class="f"><label class="lbl" for="em">' + t.email + '</label><input id="em" type="email" autocomplete="email" value="' + esc(vals.email) + '"></div>' +
+    (reg && !inviteToken ? '<div class="f"><label class="lbl" for="hm">' + t.home + '</label><input id="hm" maxlength="60" value="' + esc(vals.home) + '"></div>' : "") +
+    '<div class="f"><label class="lbl" for="pw">' + t.password + '</label><input id="pw" type="password" autocomplete="' + (reg ? "new-password" : "current-password") + '" value="' + esc(vals.password) + '"></div>' +
+    (err ? '<p class="err" role="alert">' + esc(err) + "</p>" : "") +
+    '<div id="cf"></div><button class="btn p" id="go"' + (busy ? " disabled" : "") + ">" + (busy ? t.wait : (reg ? t.register : t.login)) + "</button>" +
+    '<p class="t">' + (reg ? (inviteToken ? t.invited : t.first) : t.rules) + "</p>";
+  document.getElementById("tl").onclick = () => { mode = "login"; err = ""; render(); };
+  document.getElementById("tr").onclick = () => { mode = "register"; err = ""; render(); };
+  document.getElementById("em").oninput = (e) => { vals.email = e.target.value; };
+  document.getElementById("pw").oninput = (e) => { vals.password = e.target.value; };
+  if (reg && !inviteToken) document.getElementById("hm").oninput = (e) => { vals.home = e.target.value; };
+  document.getElementById("go").onclick = submit;
+  mountCaptcha();
+}
+function opts(list, sel, label) {
+  return list.map((v) => '<option value="' + esc(v) + '"' + (v === sel ? " selected" : "") + ">" + esc(label(v)) + "</option>").join("");
+}
+const isCount = (u) => ["unit", "sachet", "tablet", "dose"].includes(u);
+function totalHint() {
+  const t = T[lang], n = Number(form.quantity) || 0, ps = Number(form.pack_size) || 0, u = t.unit[form.unit] || form.unit;
+  return t.total + ": " + (ps ? fmtQ(n) + " \u00d7 " + fmtQ(ps) + " " + u + " = " + fmtQ(Math.round(n * ps * 1e6) / 1e6) + " " + u : fmtQ(n) + " " + u);
+}
+function packName(k, n) { const p = T[lang].pack[k]; return p ? (n === 1 ? p[0] : p[1]) : ""; }
+function describe(r) {
+  const t = T[lang], u = t.unit[r.unit] || r.unit, q = r.quantity, ps = r.pack_size, pl = r.pack_label;
+  const item = r.item_amount ? " \u00d7 " + fmtQ(r.item_amount) + " " + (t.unit[r.item_unit] || r.item_unit) : "";
+  if (ps && pl) {
+    const n = q / ps;
+    if (n > 1 && Math.abs(n - Math.round(n)) >= 1e-6) return fmtQ(Math.round(n * 100) / 100) + " " + packName(pl, 2) + " " + t.of_pack + " " + fmtQ(ps) + " " + u + item;
+    if (n >= 1 && Math.abs(n - Math.round(n)) < 1e-6) { const k = Math.round(n); return k + " " + packName(pl, k) + " " + t.of_pack + " " + fmtQ(ps) + " " + u + item; }
+    return fmtQ(q) + " " + u + " " + t.left + " (" + packName(pl, 1) + " " + t.of_pack + " " + fmtQ(ps) + " " + u + item + ")";
+  }
+  if (ps) return fmtQ(q) + " " + u + " (" + fmtQ(ps) + " " + u + item + ")";
+  if (pl) return fmtQ(q) + " " + packName(pl, q);
+  return fmtQ(q) + " " + u;
+}
+function statusOf(r) {
+  const t = T[lang];
+  const days = r.expiry_date ? daysTo(r.expiry_date) : null;
+  const low = r.min_stock > 0 && r.total < r.min_stock;
+  let color = "var(--green)", cls = "ok";
+  if (days !== null && days < 0) { color = "var(--red)"; cls = "expired"; }
+  else if ((days !== null && days <= SOON_DAYS) || low) { color = "var(--yellow)"; cls = "soon"; }
+  let text = days === null ? t.no_exp : days < 0 ? t.exp_ago(-days) : days === 0 ? t.exp_today : days <= SOON_DAYS ? t.exp_in(days) : t.exp_on(fmtDate(r.expiry_date));
+  return { days, low, color, cls, text };
+}
+function invView() {
+  const t = T[lang], pc = {}, seen = {};
+  inv.forEach((r) => { pc[r.product_id] = (pc[r.product_id] || 0) + 1; });
+  const chips = Object.keys(t.filters).map((k) => '<button class="chip ' + (filter === k ? "on" : "") + '" data-a="filter" data-t="' + k + '">' + t.filters[k] + "</button>").join("");
+  let html = '<h1>' + t.inv_title + '</h1><div class="chips">' + chips + '</div><div class="t" style="margin:0 0 4px">' + t.fifo + "</div>";
+  let n = 0;
+  inv.forEach((r) => {
+    const s = statusOf(r), firstOne = !seen[r.product_id] && pc[r.product_id] > 1;
+    seen[r.product_id] = true;
+    if (filter === "soon" && !(s.days !== null && s.days >= 0 && s.days <= SOON_DAYS)) return;
+    if (filter === "low" && !s.low) return;
+    if (filter === "expired" && s.cls !== "expired") return;
+    n++;
+    const who = r.owner ? r.owner.split("@")[0] : "";
+    html += '<div class="item"><div class="bar" style="background:' + s.color + '"></div>' + (r.has_photo ? '<img class="ph" loading="lazy" alt="" src="/api/products/' + r.product_id + '/photo?v=' + (photoVer[r.product_id] || 0) + '">' : '') + '<div class="info"><div class="val">' + esc(r.name) + '</div>' +
+      '<div class="t" style="margin-top:2px">' + esc((t.loc[r.location] || r.location || "")) + " \u00b7 " + esc(describe(r)) + (who ? " \u00b7 " + esc(who) : "") + '</div>' +
+      (r.notes ? '<div class="t" style="margin-top:2px">' + esc(r.notes) + '</div>' : "") + '<div class="x">' + esc(s.text) + '</div>' + (s.low ? '<div class="x">' + t.low_t + "</div>" : "") + '</div>' +
+      '<div class="side">' + (firstOne ? '<span class="tag">' + t.use_first + "</span>" : "") +
+      '<button class="mini" data-a="use_open" data-b="' + r.batch_id + '">' + t.use + "</button>" +
+      (s.cls === "expired" ? '<button class="mini" style="color:var(--red);border-color:var(--red)" data-a="disc_open" data-b="' + r.batch_id + '">' + t.discard + "</button>" : "") + "</div></div>";
+    if (act && act.bid === r.batch_id) {
+      html += '<div class="panel">' + (act.kind === "use"
+        ? '<label class="lbl" for="uq">' + t.qty_use + " (" + esc(t.unit[r.unit] || r.unit) + ')</label><input id="uq" type="number" inputmode="decimal" min="0" step="any" value="1">' + (r.pack_size ? '<button class="mini" style="margin-top:8px" data-a="use_full" data-q="' + fmtQ(Math.min(r.pack_size, r.quantity)) + '">' + t.use_full + "</button>" : "") + '<div class="t" style="margin-top:6px">' + t.fifo_use + '</div>' +
+          (actErr ? '<p class="err" style="margin:8px 0 0">' + esc(actErr) + "</p>" : "") +
+          '<div class="two"><button class="btn p" data-a="use_ok" data-p="' + r.product_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div><button class=\"btn s\" style=\"margin-top:10px\" data-a=\"edit_open\" data-b=\"" + r.batch_id + "\">" + t.edit + "</button><button class=\"btn s\" style=\"margin-top:10px\" data-a=\"ph_inv\" data-p=\"" + r.product_id + "\">" + t.photo_change + "</button><button class=\"btn s\" style=\"color:var(--red);border-color:var(--red);margin-top:10px\" data-a=\"del_open\" data-b=\"" + r.batch_id + "\">" + t.del + "</button>"
+        : '<div class="val">' + (act.kind === "del" ? t.del_q : t.discard_q) + '</div><div class="two"><button class="btn d" data-a="' + (act.kind === "del" ? "del_ok" : "disc_ok") + '" data-b="' + r.batch_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div>") + "</div>";
+    }
+  });
+  if (!n) html += '<p class="t">' + (filter === "all" ? t.empty : t["empty_" + filter]) + "</p>";
+  return html;
+}
+function addView() {
+  const t = T[lang], req = form.category === "food" || form.category === "medicine";
+  return '<h1>' + (editId ? t.edit_title : t.add_title) + '</h1>' + (editId ? '<p class="t" style="margin:-6px 0 12px">' + t.edit_note + '</p>' : '<button class="btn s" data-a="scan" style="margin-bottom:12px">' + t.scan + '</button>') + (!editId && lookupMsg ? '<p class="t" style="margin:0 0 12px">' + esc(lookupMsg) + '</p>' : "") +
+    (function () { const src = form.photo || form.photo_url || (form.photo_pid ? "/api/products/" + form.photo_pid + "/photo" : ""); return '<div class="f"><span class="lbl">' + t.photo + '</span><div class="row">' + (src ? '<img class="pv" alt="" src="' + esc(src) + '">' : '<div class="pv"></div>') + '<div style="flex:1;display:flex;flex-direction:column;gap:8px"><button class="mini" data-a="ph_cam">' + t.photo_take + '</button><button class="mini" data-a="ph_gal">' + t.photo_pick + '</button></div></div></div>'; })() +
+    '<div class="f"><label class="lbl" for="f_name">' + t.f_name + '</label><input id="f_name" data-f="name" list="plist" maxlength="80" autocomplete="off" value="' + esc(form.name) + '"></div>' +
+    '<datalist id="plist">' + prods.map((p) => '<option value="' + esc(p.name) + '"></option>').join("") + "</datalist>" +
+    '<div class="f"><label class="lbl" for="f_notes">' + t.f_notes + '</label><input id="f_notes" data-f="notes" maxlength="120" placeholder="' + esc(t.notes_ph) + '" value="' + esc(form.notes) + '"></div>' +
+    '<div class="grid">' +
+    '<div class="f"><label class="lbl" for="f_category">' + t.f_cat + '</label><select id="f_category" data-f="category">' + opts(["food", "cleaning", "supplies", "medicine"], form.category, (v) => t.cat[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_location_id">' + t.f_loc + '</label><select id="f_location_id" data-f="location_id">' + opts(locs.map((l) => l.id).concat(["__new__"]), form.location_id, (id) => { if (id === "__new__") return t.loc_new; const l = locs.find((x) => x.id === id); return t.loc[l.name] || l.name; }) + "</select>" + (form.location_id === "__new__" ? '<input id="f_new_location" data-f="new_location" maxlength="40" placeholder="' + esc(t.loc_name) + '" style="margin-top:8px" value="' + esc(form.new_location) + '">' : "") + "</div>" +
+    '<div class="f"><label class="lbl" for="f_quantity">' + t.f_qty + '</label><input id="f_quantity" data-f="quantity" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.quantity) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_pack_label">' + t.f_pack + '</label><select id="f_pack_label" data-f="pack_label"><option value="">' + t.f_pack_none + "</option>" + opts(["bag", "wrap", "box", "pack", "bottle", "jar", "can", "tube"], form.pack_label, (v) => t.pack[v][0]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_pack_size">' + t.f_content + '</label><input id="f_pack_size" data-f="pack_size" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.pack_size) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_unit">' + t.f_unit + '</label><select id="f_unit" data-f="unit">' + opts(["unit", "kg", "g", "l", "ml", "dose", "sachet", "tablet"], form.unit, (v) => t.unit[v]) + "</select></div>" +
+    (isCount(form.unit) ? '<div class="f"><label class="lbl" for="f_item_amount">' + t.f_item + '</label><input id="f_item_amount" data-f="item_amount" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.item_amount) + '"></div>' +
+      '<div class="f"><label class="lbl" for="f_item_unit">&nbsp;</label><select id="f_item_unit" data-f="item_unit"><option value="">\u2014</option>' + opts(["g", "kg", "ml", "l"], form.item_unit, (v) => t.unit[v]) + "</select></div>" : "") +
+    '<div class="f"><label class="lbl" for="f_purchase_date">' + t.f_buy + '</label><input id="f_purchase_date" data-f="purchase_date" type="date" value="' + esc(form.purchase_date) + '"></div>' +
+    '<div class="f"><label class="lbl" id="l_exp" for="f_expiry_date">' + (req ? t.f_exp_req : t.f_exp) + '</label><input id="f_expiry_date" data-f="expiry_date" type="date" value="' + esc(form.expiry_date) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_min_stock">' + t.f_min + '</label><input id="f_min_stock" data-f="min_stock" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.min_stock) + '"></div>' +
+    '<div class="f"><label class="lbl" for="f_barcode">' + t.f_bar + '</label><input id="f_barcode" data-f="barcode" inputmode="numeric" maxlength="14" value="' + esc(form.barcode) + '"></div></div><p class="t" id="total_hint" style="margin:0 0 6px;font-weight:500">' + totalHint() + '</p><p class="t" style="margin:0 0 14px">' + t.pack_help + "</p>" +
+    (addErr ? '<p class="err" role="alert">' + esc(addErr) + "</p>" : "") + (addMsg ? '<p class="ok"><span class="dot"></span>' + esc(addMsg) + "</p>" : "") +
+    '<button class="btn p" data-a="save"' + (busy ? " disabled" : "") + ">" + (busy ? t.wait : (editId ? t.edit_save : t.save)) + "</button>" + (editId ? '<button class="btn s" style="margin-top:10px" data-a="edit_cancel">' + t.cancel + "</button>" : "");
+}
+function homeView() {
+  const t = T[lang], mine = user.role === "manager";
+  const mem = hm ? hm.members : [], pend = hm ? hm.invitations : [], max = user.home.max;
+  let html = '<h1>' + esc(user.home.name) + '</h1><div class="t" style="margin:-8px 0 8px">' + t.members + " " + mem.length + " " + t.of + " " + max + "</div>";
+  mem.forEach((m) => {
+    html += '<div class="mem"><div class="av">' + esc(m.email[0].toUpperCase()) + '</div><div style="flex:1;min-width:0"><div class="val" style="overflow:hidden;text-overflow:ellipsis">' + esc(m.email) + '</div><div class="t" style="margin:0">' + (m.role === "manager" ? t.role_manager : t.role_member) + "</div></div>" +
+      (mine && hm && m.id !== hm.me ? '<button class="mini" data-a="make_mgr" data-p="' + m.id + '">' + t.make_mgr + "</button>" : "") + "</div>";
+  });
+  if (mine) {
+    if (pend.length) {
+      html += '<div class="t" style="margin:16px 0 0;font-weight:500">' + t.pending + "</div>";
+      pend.forEach((p) => { html += '<div class="mem"><div class="val" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:500">' + esc(p.email) + '</div><button class="mini" data-a="inv_cancel" data-b="' + p.id + '">' + t.cancel + "</button></div>"; });
+    }
+    if (mem.length + pend.length < max) {
+      html += '<div class="card" style="margin-top:16px"><div class="val" style="margin-bottom:8px">' + t.invite_t + '</div><label class="lbl" for="inv_email">' + t.email + '</label><input id="inv_email" type="email" autocomplete="off">' +
+        '<button class="btn p" style="margin-top:12px" data-a="invite">' + t.invite_btn + "</button></div>";
+    }
+    if (invLink) html += '<div class="t" style="margin:0">' + t.invite_note + '</div><div class="link">' + esc(invLink) + '</div><button class="btn s" data-a="copy">' + t.copy + "</button>";
+    if (homeMsg) html += '<p class="ok" style="margin-top:12px"><span class="dot"></span>' + esc(homeMsg) + "</p>";
+    if (homeErr) html += '<p class="err" role="alert" style="margin-top:12px">' + esc(homeErr) + "</p>";
+  }
+  html += '<div class="t" style="margin:20px 0 0;font-weight:500">' + t.loc_title + "</div>";
+  locs.forEach((l) => {
+    html += '<div class="mem"><div class="val" style="flex:1;font-weight:500">' + esc(t.loc[l.name] || l.name) + "</div>" +
+      (mine ? '<button class="mini" data-a="loc_rename" data-b="' + l.id + '">' + t.loc_rename + '</button><button class="mini" style="color:var(--red);border-color:var(--red)" data-a="loc_del" data-b="' + l.id + '">' + t.loc_del + "</button>" : "") + "</div>";
+  });
+  html += '<div class="row" style="margin-top:12px"><input id="loc_new" maxlength="40" placeholder="' + esc(t.loc_name) + '"><button class="mini" data-a="loc_add">' + t.loc_add + "</button></div>";
+  return html + '<div style="height:24px"></div><button class="btn s" data-a="out">' + t.out + "</button>";
+}
+function render() {
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  document.getElementById("es").className = lang === "es" ? "on" : "";
+  document.getElementById("en").className = lang === "en" ? "on" : "";
+  if (user === undefined) { app.innerHTML = '<p class="t">' + t.loading + "</p>"; nav.innerHTML = ""; return; }
+  if (!user) { nav.innerHTML = ""; accessView(); return; }
+  app.innerHTML = tab === "add" ? addView() : tab === "home" ? homeView() : invView();
+  nav.innerHTML = ["inv", "add", "home"].map((k) => '<button class="' + (tab === k ? "on" : "") + '" data-a="tab" data-t="' + k + '">' + ICON[k] + "<span>" + t.nav[k] + "</span></button>").join("");
+}
+async function submit() {
+  if (busy) return;
+  const body = { email: vals.email, password: vals.password, token };
+  if (mode === "register") { body.home_name = vals.home; if (inviteToken) body.invite = inviteToken; }
+  busy = true; err = ""; render();
+  try {
+    const { ok, d } = await post(mode === "register" ? "/api/register" : "/api/login", body);
+    if (ok) { vals.password = ""; busy = false; tab = "inv"; inviteToken = ""; await loadMe(); return; }
+    err = msg(d.error, d);
+  } catch (e) { err = msg("network"); }
+  busy = false; render();
+}
+function resetForm() {
+  const keep = { loc: form.location_id === "__new__" ? "" : form.location_id, buy: form.purchase_date };
+  form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:keep.loc, purchase_date:keep.buy, expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"", item_amount:"", item_unit:"", notes:"" };
+}
+async function saveBatch() {
+  if (busy) return;
+  addMsg = ""; addErr = ""; busy = true; render();
+  try {
+    if (form.location_id === "__new__") {
+      const r0 = await post("/api/locations", { name: form.new_location });
+      if (!r0.ok) { addErr = msg(r0.d.error, r0.d); busy = false; render(); return; }
+      form.location_id = r0.d.id; form.new_location = ""; await loadData();
+    }
+    const body = Object.assign({}, form, { quantity: Number(form.quantity), min_stock: Number(form.min_stock || 0), pack_size: form.pack_size ? Number(form.pack_size) : null, item_amount: isCount(form.unit) && form.item_amount ? Number(form.item_amount) : null, item_unit: isCount(form.unit) && form.item_amount ? form.item_unit : "" });
+    const r = await post(editId ? "/api/batches/" + editId + "/edit" : "/api/batches", body);
+    if (r.ok) {
+      if (editId) { editId = ""; tab = "inv"; } else addMsg = T[lang].saved + (r.d.photo_failed ? " " + T[lang].photo_failed : "");
+      resetForm(); await loadData();
+    } else addErr = msg(r.d.error, r.d);
+  } catch (e) { addErr = msg("network"); }
+  busy = false; render(); window.scrollTo(0, 0);
+}
+let stream = null, timer = null, zr = null, found = false;
+function stopScan() {
+  if (timer) { clearInterval(timer); timer = null; }
+  if (zr) { try { zr.reset(); } catch (e) {} zr = null; }
+  if (stream) { stream.getTracks().forEach((x) => x.stop()); stream = null; }
+  const v = document.getElementById("scan_v"); v.srcObject = null;
+  document.getElementById("scan").hidden = true;
+}
+async function onCode(code) {
+  if (found) return;
+  found = true; stopScan();
+  form.barcode = code; lookupMsg = "";
+  const t = T[lang];
+  try {
+    const r = await get("/api/lookup?code=" + code);
+    if (r.ok && r.d.found === "home") {
+      const p = r.d.product;
+      form.name = p.name; form.category = p.category || form.category; form.unit = p.unit; form.min_stock = String(p.min_stock || 0); form.pack_label = p.pack_label || ""; form.pack_size = p.pack_size ? String(p.pack_size) : ""; form.item_amount = p.item_amount ? String(p.item_amount) : ""; form.item_unit = p.item_unit || ""; form.photo = ""; form.photo_url = ""; form.photo_pid = p.has_photo ? p.id : ""; form.quantity = "1"; if (p.location_id && locs.some((x) => x.id === p.location_id)) form.location_id = p.location_id; lookupMsg = t.look_home;
+    } else if (r.ok && r.d.found === "off") {
+      form.name = r.d.product.name + (r.d.product.brand ? " - " + r.d.product.brand : ""); form.category = "food"; const c = r.d.product; if (c.pack_size) { form.pack_size = String(c.pack_size); form.unit = c.unit; form.item_amount = c.item_amount ? String(c.item_amount) : ""; form.item_unit = c.item_unit || ""; } form.photo = ""; form.photo_pid = ""; form.photo_url = r.d.product.image_url || ""; lookupMsg = t.look_off; if (form.photo_url) form.photo = await remoteImage(form.photo_url);
+    } else lookupMsg = t.look_none;
+  } catch (e) { lookupMsg = t.look_none; }
+  render();
+}
+function loadZXing() {
+  return new Promise((ok, ko) => {
+    if (window.ZXing) return ok();
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"; s.onload = ok; s.onerror = ko; document.head.appendChild(s);
+  });
+}
+async function startScan() {
+  const t = T[lang], v = document.getElementById("scan_v"), er = document.getElementById("scan_err");
+  found = false; er.textContent = "";
+  document.getElementById("scan_hint").textContent = t.scan_hint;
+  document.getElementById("scan_close").textContent = t.scan_close;
+  document.getElementById("scan").hidden = false;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { er.textContent = t.scan_noperm; return; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+    v.srcObject = stream; await v.play();
+  } catch (e) { er.textContent = t.scan_noperm; return; }
+  let det = null;
+  try {
+    if ("BarcodeDetector" in window) {
+      const f = (await BarcodeDetector.getSupportedFormats()).filter((x) => ["ean_13", "ean_8", "upc_a", "upc_e"].includes(x));
+      if (f.length) det = new BarcodeDetector({ formats: f });
+    }
+  } catch (e) { det = null; }
+  if (det) {
+    timer = setInterval(async () => {
+      try { const c = await det.detect(v); const code = c[0] && c[0].rawValue; if (code && /^\d{6,14}$/.test(code)) onCode(code); } catch (e) {}
+    }, 250);
+    return;
+  }
+  try {
+    await loadZXing();
+    stream.getTracks().forEach((x) => x.stop()); stream = null;
+    zr = new ZXing.BrowserMultiFormatReader();
+    zr.decodeFromVideoDevice(undefined, "scan_v", (res) => { if (res) { const code = res.getText(); if (/^\d{6,14}$/.test(code)) onCode(code); } });
+  } catch (e) { er.textContent = t.scan_fail; }
+}
+async function remoteImage(url) {
+  try { const r = await fetch(url, { mode: "cors" }); if (!r.ok) return ""; return await shrink(await r.blob(), 400); } catch (e) { return ""; }
+}
+function shrink(file, max) {
+  return new Promise((ok, ko) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", 0.72));
+    };
+    img.onerror = ko; img.src = url;
+  });
+}
+async function onPhoto(e) {
+  const f = e.target.files && e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try {
+    const data = await shrink(f, 400);
+    if (photoPid) {
+      const pid = photoPid; photoPid = "";
+      const r = await post("/api/products/" + pid + "/photo", { photo: data });
+      if (!r.ok) { alert(msg(r.d.error, r.d)); return; }
+      photoVer[pid] = Date.now(); act = null; await loadData(); render();
+    } else { form.photo = data; form.photo_url = ""; form.photo_pid = ""; render(); }
+  } catch (err) { alert(T[lang].e.invalid_photo); }
+}
+document.getElementById("ph_cam").onchange = onPhoto;
+document.getElementById("ph_gal").onchange = onPhoto;
+document.getElementById("scan_close").onclick = stopScan;
+const actions = {
+  tab: (d) => { if (editId) { editId = ""; resetForm(); } tab = d.t; act = null; addMsg = ""; addErr = ""; homeErr = ""; homeMsg = ""; render(); },
+  filter: (d) => { filter = d.t; act = null; render(); },
+  use_open: (d) => { act = { kind:"use", bid:d.b }; actErr = ""; render(); },
+  disc_open: (d) => { act = { kind:"disc", bid:d.b }; render(); },
+  cancel: () => { act = null; render(); },
+  use_ok: async (d) => {
+    const q = Number(document.getElementById("uq").value);
+    const r = await post("/api/products/" + d.p + "/use", { quantity: q });
+    if (r.ok) { act = null; await loadData(); } else actErr = msg(r.d.error, r.d);
+    render();
+  },
+  disc_ok: async (d) => { await post("/api/batches/" + d.b + "/discard", {}); act = null; await loadData(); render(); },
+  ph_cam: () => { photoPid = ""; document.getElementById("ph_cam").click(); },
+  ph_gal: () => { photoPid = ""; document.getElementById("ph_gal").click(); },
+  ph_inv: (d) => { photoPid = d.p; document.getElementById("ph_gal").click(); },
+  edit_open: (d) => {
+    const r = inv.find((x) => x.batch_id === d.b);
+    if (!r) return;
+    editId = r.batch_id; act = null; addMsg = ""; addErr = "";
+    form = { name:r.name, category:r.category || "food", unit:r.unit, quantity:String(r.pack_size ? Math.round(r.quantity / r.pack_size * 10000) / 10000 : r.quantity), location_id:r.location_id || (locs[0] ? locs[0].id : ""), purchase_date:r.purchase_date, expiry_date:r.expiry_date || "", min_stock:String(r.min_stock || 0), barcode:r.barcode || "", pack_label:r.pack_label || "", pack_size:r.pack_size ? String(r.pack_size) : "", photo:"", photo_url:"", photo_pid:r.has_photo ? r.product_id : "", new_location:"", item_amount:r.item_amount ? String(r.item_amount) : "", item_unit:r.item_unit || "", notes:r.notes || "" };
+    tab = "add"; render(); window.scrollTo(0, 0);
+  },
+  edit_cancel: () => { editId = ""; resetForm(); tab = "inv"; render(); },
+  loc_add: async () => {
+    const r = await post("/api/locations", { name: document.getElementById("loc_new").value });
+    if (!r.ok) { alert(msg(r.d.error, r.d)); return; }
+    await loadData(); render();
+  },
+  loc_rename: async (d) => {
+    const l = locs.find((x) => x.id === d.b), n = l && prompt(T[lang].loc_rename_q, T[lang].loc[l.name] || l.name);
+    if (!n) return;
+    const r = await post("/api/locations/" + d.b + "/rename", { name: n });
+    if (!r.ok) { alert(msg(r.d.error, r.d)); return; }
+    await loadData(); render();
+  },
+  loc_del: async (d) => {
+    if (!confirm(T[lang].loc_del_q)) return;
+    const r = await post("/api/locations/" + d.b + "/delete", {});
+    if (!r.ok) { alert(msg(r.d.error, r.d)); return; }
+    await loadData(); render();
+  },
+  use_full: (d) => { document.getElementById("uq").value = d.q; },
+  del_open: (d) => { act = { kind:"del", bid:d.b }; render(); },
+  del_ok: async (d) => {
+    const r = await post("/api/batches/" + d.b + "/delete", {});
+    act = null;
+    if (!r.ok) alert(msg(r.d.error, r.d));
+    await loadData(); render();
+  },
+  save: saveBatch,
+  scan: startScan,
+  invite: async () => {
+    homeErr = ""; homeMsg = "";
+    const r = await post("/api/invitations", { email: document.getElementById("inv_email").value });
+    if (r.ok) { invLink = location.origin + "/#join=" + r.d.token; await loadData(); } else homeErr = msg(r.d.error, r.d);
+    render();
+  },
+  copy: async () => { try { await navigator.clipboard.writeText(invLink); homeMsg = T[lang].copied; } catch (e) {} render(); },
+  inv_cancel: async (d) => { await post("/api/invitations/" + d.b + "/cancel", {}); invLink = ""; await loadData(); render(); },
+  make_mgr: async (d) => {
+    if (!confirm(T[lang].mgr_q)) return;
+    homeErr = ""; homeMsg = "";
+    const r = await post("/api/home/manager", { person_id: d.p });
+    if (r.ok) { invLink = ""; await loadMe(); return; }
+    homeErr = msg(r.d.error, r.d); render();
+  },
+  out: async () => { await post("/api/logout", {}); user = null; vals.password = ""; inv = []; render(); }
+};
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-a]");
+  if (b && actions[b.dataset.a]) actions[b.dataset.a](b.dataset);
+});
+document.addEventListener("input", (e) => {
+  const f = e.target.dataset && e.target.dataset.f;
+  if (!f) return;
+  form[f] = e.target.value;
+  if (f === "quantity" || f === "pack_size") { const el = document.getElementById("total_hint"); if (el) el.textContent = totalHint(); }
+});
+document.addEventListener("change", (e) => {
+  const f = e.target.dataset && e.target.dataset.f;
+  if (!f) return;
+  form[f] = e.target.value;
+  if (f === "location_id" || f === "unit") { render(); return; }
+  if (f === "category") {
+    const req = form.category === "food" || form.category === "medicine";
+    document.getElementById("l_exp").textContent = req ? T[lang].f_exp_req : T[lang].f_exp;
+  }
+  if (f === "name") {
+    const p = prods.find((x) => x.name.toLowerCase() === form.name.trim().toLowerCase());
+    if (p) {
+      form.category = p.category || form.category; form.unit = p.unit; form.barcode = p.barcode || ""; form.min_stock = String(p.min_stock || 0); form.pack_label = p.pack_label || ""; form.pack_size = p.pack_size ? String(p.pack_size) : ""; form.item_amount = p.item_amount ? String(p.item_amount) : ""; form.item_unit = p.item_unit || "";
+      ["category", "unit", "barcode", "min_stock", "pack_label", "pack_size", "item_amount", "item_unit"].forEach((k) => { document.getElementById("f_" + k).value = form[k]; });
+      const req = form.category === "food" || form.category === "medicine";
+      document.getElementById("l_exp").textContent = req ? T[lang].f_exp_req : T[lang].f_exp;
+    }
+  }
+});
+document.getElementById("es").onclick = () => { lang = "es"; render(); };
+document.getElementById("en").onclick = () => { lang = "en"; render(); };
+const jm = location.hash.match(/^#join=([\w-]+)$/);
+if (jm) { inviteToken = jm[1]; mode = "register"; history.replaceState(null, "", location.pathname); }
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+render(); loadMe();
+</script>
+</body>
+</html>
