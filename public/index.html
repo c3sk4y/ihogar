@@ -91,6 +91,7 @@
   .band { background:var(--blue); color:#fff; border-radius:26px; padding:34px 26px; margin:0 0 44px; }
   .band h2 { color:#fff; margin:0 0 24px; }
   .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:26px; }
+  .stimg { display:block; width:150px; max-width:100%; height:auto; margin:0 0 16px; }
   .num { font-size:46px; font-weight:700; letter-spacing:-1.5px; line-height:1; margin-bottom:10px; }
   .st { font-size:17px; font-weight:700; margin-bottom:6px; }
   .sd { font-size:14px; line-height:1.55; opacity:.92; }
@@ -320,7 +321,7 @@ function landingView() {
   const L = LAND[lang], col = { red:"var(--red)", yellow:"var(--yellow)", green:"var(--green)" }, sq = ["var(--green)", "var(--yellow)", "var(--red)"];
   const rows = L.rows.map((r) => '<div class="item"><div class="bar" style="background:' + col[r.c] + '"></div><div class="info"><div class="val">' + r.n + '</div><div class="t" style="margin-top:2px">' + r.m + '</div><div class="x">' + r.x + "</div></div>" + (r.tag ? '<span class="tag" style="align-self:center">' + L.tag + "</span>" : "") + "</div>").join("");
   const legend = '<div class="legend">' + L.legend.map((x, i) => '<span><i style="background:' + sq[i] + '"></i>' + x + "</span>").join("") + "</div>";
-  const steps = L.how.map((s, i) => '<div><div class="num">' + (i + 1) + '</div><div class="st">' + s[0] + '</div><div class="sd">' + s[1] + "</div></div>").join("");
+  const steps = L.how.map((s, i) => '<div><img class="stimg" src="/img/paso-' + (i + 1) + '.svg" width="160" height="120" alt=""><div class="num">' + (i + 1) + '</div><div class="st">' + s[0] + '</div><div class="sd">' + s[1] + "</div></div>").join("");
   const why = L.why.map((c) => '<div class="c3"><b>' + c[0] + "</b><span>" + c[1] + "</span></div>").join("");
   const cta = '<div class="cta"><button class="btn p" data-a="go_register">' + L.cta1 + '</button><button class="btn s" data-a="go_login">' + L.cta2 + "</button></div>";
   app.innerHTML =
