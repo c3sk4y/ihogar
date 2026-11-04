@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Anotar cantidad, ubicacion y fecha de vencimiento">
+<rect x="26" y="6" width="108" height="108" rx="14"/>
+<path d="M40 24l9-5 9 5v11l-9 5-9-5zM40 24l9 5 9-5M49 29v11"/>
+<path d="M70 32h46" stroke-width="3"/>
+<path d="M49 72c-7-8-9-12-9-16a9 9 0 0 1 18 0c0 4-2 8-9 16z"/>
+<circle cx="49" cy="56" r="3"/>
+<path d="M70 58h34" stroke-width="3"/>
+<rect x="40" y="86" width="19" height="19" rx="3"/>
+<path d="M40 93h19M46 83v5M53 83v5"/>
+<path d="M70 96h28" stroke-width="3"/>
+</svg>

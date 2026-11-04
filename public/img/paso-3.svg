@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="La lista se ordena: lo que vence primero aparece primero">
+<path d="M22 100V24M14 32l8-8 8 8"/>
+<rect x="44" y="8" width="96" height="30" rx="8" stroke-width="4.5"/>
+<path d="M54 17v12M66 19h34M66 27h22" stroke-width="3"/>
+<rect x="114" y="16" width="18" height="14" rx="7" stroke-width="3"/>
+<rect x="44" y="45" width="96" height="30" rx="8"/>
+<path d="M54 54v12M66 56h30M66 64h20" stroke-width="3"/>
+<rect x="44" y="82" width="96" height="30" rx="8"/>
+<path d="M54 91v12M66 93h36M66 101h24" stroke-width="3"/>
+</svg>
