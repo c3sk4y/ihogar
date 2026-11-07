@@ -142,7 +142,9 @@ async function register(req, env, ip) {
     if (/UNIQUE/i.test(String(e.message))) return json({ error: "email_in_use" }, 409);
     throw e;
   }
-  return newSession(env, pid, 201);
+  let sent = true;
+  try { await sendToken(env, new URL(req.url).origin, { id: pid, email }, "verify"); } catch (e) { sent = false; }
+  return json({ ok: true, verify: true, mail_sent: sent }, 201);
 }
 
 async function login(req, env, ip) {
@@ -157,7 +159,7 @@ async function login(req, env, ip) {
   const [er, ir] = await Promise.all([getAttempts(env, ek), getAttempts(env, ik)]);
   const wait = Math.max(lockedSeconds(er), lockedSeconds(ir));
   if (wait > 0) return json({ error: "locked", retry_after: wait }, 423);
-  const p = await env.DB.prepare("SELECT id, password_hash FROM people WHERE email = ?").bind(email).first();
+  const p = await env.DB.prepare("SELECT id, password_hash, email_verified FROM people WHERE email = ?").bind(email).first();
   const ok = await verifyPassword(pw, p ? p.password_hash : DUMMY);
   if (!p || !ok) {
     const e = await addFail(env, ek, MAX_FAILS);
@@ -166,6 +168,7 @@ async function login(req, env, ip) {
     return json({ error: "invalid_credentials", attempts_left: MAX_FAILS - e.failed }, 401);
   }
   await env.DB.prepare("DELETE FROM login_attempts WHERE key = ?").bind(ek).run();
+  if (!p.email_verified) return json({ error: "email_not_verified" }, 403);
   return newSession(env, p.id);
 }
 
@@ -488,6 +491,77 @@ async function setManager(req, env, u) {
   return json({ ok: true });
 }
 
+async function sendMail(env, to, subject, html) {
+  if (!env.BREVO_API_KEY || !env.MAIL_FROM) throw new Error("mail_config");
+  const r = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "api-key": env.BREVO_API_KEY, "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({ sender: { name: env.MAIL_NAME || "Inventario Hogar", email: env.MAIL_FROM }, to: [{ email: to }], subject, htmlContent: html }),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!r.ok) throw new Error("mail_" + r.status);
+}
+function mailBody(link, kind) {
+  const T = kind === "verify"
+    ? { es: ["Confirma tu correo para activar tu cuenta de Inventario Hogar.", "Confirmar correo", "El enlace vence en 24 horas. Si no creaste esta cuenta, ignora este mensaje."],
+        en: ["Confirm your email to activate your Inventario Hogar account.", "Confirm email", "The link expires in 24 hours. If you did not create this account, ignore this message."] }
+    : { es: ["Recibimos una solicitud para restablecer tu contrase\u00f1a.", "Crear nueva contrase\u00f1a", "El enlace vence en 1 hora. Si no lo pediste, ignora este mensaje."],
+        en: ["We received a request to reset your password.", "Create new password", "The link expires in 1 hour. If you did not request it, ignore this message."] };
+  const btn = (txt) => '<p><a href="' + link + '" style="display:inline-block;background:#1F4E9C;color:#ffffff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold">' + txt + "</a></p>";
+  const part = (x) => "<p>" + x[0] + "</p>" + btn(x[1]) + '<p style="color:#4A4F5A;font-size:13px">' + x[2] + "</p>";
+  return '<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#16181D"><h2 style="color:#1F4E9C">Inventario Hogar</h2>' + part(T.es) + '<hr style="border:0;border-top:1px solid #D9DCE3;margin:24px 0">' + part(T.en) + "</div>";
+}
+async function sendToken(env, origin, person, kind) {
+  const raw = b64url(crypto.getRandomValues(new Uint8Array(24)));
+  const hours = kind === "verify" ? 24 : 1;
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM email_tokens WHERE person_id = ? AND type = ?").bind(person.id, kind),
+    env.DB.prepare("INSERT INTO email_tokens (id, person_id, type, token_hash, expires_at) VALUES (?, ?, ?, ?, ?)")
+      .bind(crypto.randomUUID(), person.id, kind, await sha256(raw), new Date(Date.now() + hours * 3600 * 1000).toISOString()),
+  ]);
+  await sendMail(env, person.email, kind === "verify" ? "Confirma tu correo / Confirm your email" : "Restablece tu contrase\u00f1a / Reset your password", mailBody(origin + "/#" + kind + "=" + raw, kind));
+}
+async function recentToken(env, personId, type) {
+  const r = await env.DB.prepare("SELECT created_at FROM email_tokens WHERE person_id = ? AND type = ? ORDER BY created_at DESC LIMIT 1").bind(personId, type).first();
+  return !!r && Date.now() - Date.parse(String(r.created_at).replace(" ", "T") + "Z") < 60000;
+}
+async function verifyEmail(req, env) {
+  const b = await readJson(req);
+  const tok = b && typeof b.token === "string" ? b.token : "";
+  const r = tok ? await env.DB.prepare("SELECT person_id FROM email_tokens WHERE token_hash = ? AND type = 'verify' AND expires_at > ?").bind(await sha256(tok), new Date().toISOString()).first() : null;
+  if (!r) return json({ error: "invalid_token" }, 400);
+  await env.DB.batch([
+    env.DB.prepare("UPDATE people SET email_verified = 1 WHERE id = ?").bind(r.person_id),
+    env.DB.prepare("DELETE FROM email_tokens WHERE person_id = ? AND type = 'verify'").bind(r.person_id),
+  ]);
+  return json({ ok: true });
+}
+async function mailRequest(req, env, ip, kind) {
+  const b = await readJson(req);
+  const email = norm(b && b.email);
+  if (!validEmail(email)) return json({ error: "invalid_email" }, 400);
+  if (!(await captchaOk(env, b.token, ip))) return json({ error: "captcha" }, 400);
+  const p = await env.DB.prepare(kind === "verify" ? "SELECT id, email FROM people WHERE email = ? AND email_verified = 0" : "SELECT id, email FROM people WHERE email = ?").bind(email).first();
+  if (p && !(await recentToken(env, p.id, kind))) { try { await sendToken(env, new URL(req.url).origin, p, kind); } catch (e) {} }
+  return json({ ok: true });
+}
+async function resetPassword(req, env) {
+  const b = await readJson(req);
+  const tok = b && typeof b.token === "string" ? b.token : "";
+  const pw = b && typeof b.password === "string" ? b.password : "";
+  if (pw.length < 10 || pw.length > 200) return json({ error: "weak_password" }, 400);
+  const r = tok ? await env.DB.prepare("SELECT t.person_id, p.email FROM email_tokens t JOIN people p ON p.id = t.person_id WHERE t.token_hash = ? AND t.type = 'reset' AND t.expires_at > ?").bind(await sha256(tok), new Date().toISOString()).first() : null;
+  if (!r) return json({ error: "invalid_token" }, 400);
+  const hash = await hashPassword(pw);
+  await env.DB.batch([
+    env.DB.prepare("UPDATE people SET password_hash = ?, email_verified = 1 WHERE id = ?").bind(hash, r.person_id),
+    env.DB.prepare("DELETE FROM sessions WHERE person_id = ?").bind(r.person_id),
+    env.DB.prepare("DELETE FROM email_tokens WHERE person_id = ? AND type = 'reset'").bind(r.person_id),
+    env.DB.prepare("DELETE FROM login_attempts WHERE key = ?").bind("email:" + r.email),
+  ]);
+  return json({ ok: true });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -550,6 +624,10 @@ export default {
         if (!env.TURNSTILE_SECRET) return json({ error: "server_config" }, 500);
         if (p === "/api/register") return await register(request, env, ip);
         if (p === "/api/login") return await login(request, env, ip);
+        if (p === "/api/verify") return await verifyEmail(request, env);
+        if (p === "/api/resend") return await mailRequest(request, env, ip, "verify");
+        if (p === "/api/forgot") return await mailRequest(request, env, ip, "reset");
+        if (p === "/api/reset") return await resetPassword(request, env);
         if (p === "/api/logout") {
           const raw = cookie(request, "sid");
           if (raw) await env.DB.prepare("DELETE FROM sessions WHERE id = ?").bind(await sha256(raw)).run();
