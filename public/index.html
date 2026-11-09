@@ -142,6 +142,10 @@ const T = {
     edit:"Editar", edit_title:"Editar lote", edit_save:"Guardar cambios", edit_note:"Los datos del producto se cambian en todos sus lotes.", f_qty_edit:"Cantidad actual (en la unidad)",
     empty_soon:"Nada vence en los pr\u00f3ximos 30 d\u00edas.", empty_low:"No hay productos con stock bajo. Define un stock m\u00ednimo al agregar o editar un producto.", empty_expired:"No hay productos vencidos.",
     photo_failed:"No se pudo traer la foto del producto; puedes tomarla t\u00fa.",
+    new_pw:"Nueva contrase\u00f1a", forgot_t:"Recuperar contrase\u00f1a", forgot:"\u00bfOlvidaste tu contrase\u00f1a?", send_link:"Enviar enlace", save_pw:"Guardar contrase\u00f1a",
+    resend:"Reenviar correo de confirmaci\u00f3n", resend_ok:"Si la cuenta existe y falta confirmarla, te enviamos un nuevo correo.",
+    reg_ok:"Cuenta creada. Te enviamos un correo para confirmarla; revisa tu bandeja y la carpeta de spam.", reg_nomail:"Cuenta creada, pero no pudimos enviar el correo. Intenta ingresar y pulsa Reenviar.",
+    forgot_ok:"Si el correo tiene una cuenta, te enviamos un enlace para crear una nueva contrase\u00f1a.", reset_ok:"Contrase\u00f1a actualizada. Ya puedes ingresar.", verified_ok:"Correo confirmado. Ya puedes ingresar.",
     del:"Eliminar lote", del_q:"\u00bfEliminar este lote? Se borra sin registrar merma. \u00dasalo solo para corregir errores.", f_loc:"Ubicaci\u00f3n", f_buy:"Fecha de compra",
     f_exp:"Caducidad (opcional)", f_exp_req:"Caducidad (obligatoria)", f_min:"Stock m\u00ednimo (opcional)", f_bar:"C\u00f3digo de barras (opcional)",
     add_title:"Agregar producto", save:"Guardar en inventario", saved:"Guardado en el inventario.",
@@ -160,7 +164,7 @@ const T = {
         invalid_name:"Escribe un nombre (hasta 80 caracteres).", invalid_quantity:"La cantidad debe ser mayor que 0.", invalid_date:"Revisa las fechas.",
         expiry_required:"Alimentos y remedios necesitan fecha de caducidad.", invalid_barcode:"El c\u00f3digo de barras debe tener de 6 a 14 d\u00edgitos.",
         invalid_location:"Elige una ubicaci\u00f3n.", insufficient:"No hay suficiente cantidad. Disponible: {n}.",
-        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"Solo el gestor puede hacer esto.", invalid_person:"Persona no v\u00e1lida.", invalid_pack:"Revisa el envase y su contenido.", in_use:"No se puede eliminar: est\u00e1 en uso.", invalid_photo:"No se pudo usar esa imagen.", location_exists:"Ya existe una ubicaci\u00f3n con ese nombre.", location_in_use:"Hay productos en esa ubicaci\u00f3n. Mu\u00e9velos antes de eliminarla.", invalid_location_name:"Escribe un nombre (hasta 40 caracteres).", barcode_in_use:"Ese c\u00f3digo de barras ya pertenece a otro producto." }
+        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"Solo el gestor puede hacer esto.", invalid_person:"Persona no v\u00e1lida.", invalid_pack:"Revisa el envase y su contenido.", in_use:"No se puede eliminar: est\u00e1 en uso.", invalid_photo:"No se pudo usar esa imagen.", location_exists:"Ya existe una ubicaci\u00f3n con ese nombre.", location_in_use:"Hay productos en esa ubicaci\u00f3n. Mu\u00e9velos antes de eliminarla.", invalid_location_name:"Escribe un nombre (hasta 40 caracteres).", barcode_in_use:"Ese c\u00f3digo de barras ya pertenece a otro producto.", email_not_verified:"Debes confirmar tu correo antes de ingresar. Revisa tu bandeja y la carpeta de spam.", invalid_token:"El enlace no es v\u00e1lido o ya venci\u00f3." }
   },
   en: {
     login:"Sign in", register:"Create account", email:"Email", password:"Password", home:"Home name",
@@ -181,6 +185,10 @@ const T = {
     edit:"Edit", edit_title:"Edit batch", edit_save:"Save changes", edit_note:"Product details change in all its batches.", f_qty_edit:"Current quantity (in the unit)",
     empty_soon:"Nothing expires in the next 30 days.", empty_low:"No low-stock products. Set a minimum stock when adding or editing a product.", empty_expired:"No expired products.",
     photo_failed:"The product photo could not be fetched; you can take one yourself.",
+    new_pw:"New password", forgot_t:"Reset password", forgot:"Forgot your password?", send_link:"Send link", save_pw:"Save password",
+    resend:"Resend confirmation email", resend_ok:"If the account exists and is unconfirmed, we sent a new email.",
+    reg_ok:"Account created. We sent you an email to confirm it; check your inbox and spam folder.", reg_nomail:"Account created, but we could not send the email. Try signing in and press Resend.",
+    forgot_ok:"If the email has an account, we sent a link to create a new password.", reset_ok:"Password updated. You can now sign in.", verified_ok:"Email confirmed. You can now sign in.",
     del:"Delete batch", del_q:"Delete this batch? It is removed without recording waste. Use only to fix mistakes.", f_loc:"Location", f_buy:"Purchase date",
     f_exp:"Expiry date (optional)", f_exp_req:"Expiry date (required)", f_min:"Minimum stock (optional)", f_bar:"Barcode (optional)",
     add_title:"Add product", save:"Save to ", saved:"Saved to .",
@@ -199,7 +207,7 @@ const T = {
         invalid_name:"Enter a name (up to 80 characters).", invalid_quantity:"Quantity must be greater than 0.", invalid_date:"Check the dates.",
         expiry_required:"Food and medicines need an expiry date.", invalid_barcode:"Barcode must have 6 to 14 digits.",
         invalid_location:"Choose a location.", insufficient:"Not enough quantity. Available: {n}.",
-        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"Only the manager can do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used.", location_exists:"A location with that name already exists.", location_in_use:"There are products in that location. Move them before deleting it.", invalid_location_name:"Enter a name (up to 40 characters).", barcode_in_use:"That barcode already belongs to another product." }
+        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"Only the manager can do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used.", location_exists:"A location with that name already exists.", location_in_use:"There are products in that location. Move them before deleting it.", invalid_location_name:"Enter a name (up to 40 characters).", barcode_in_use:"That barcode already belongs to another product.", email_not_verified:"You must confirm your email before signing in. Check your inbox and spam folder.", invalid_token:"The link is invalid or has expired." }
   }
 };
 const SOON_DAYS = 30;
@@ -217,7 +225,7 @@ const ICON = {
 let lang = "es", mode = "login", user = undefined, showAccess = false, token = "", err = "", busy = false, vals = { email:"", password:"", home:"" };
 let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, actErr = "", addMsg = "", addErr = "", lookupMsg = "", hm = null, invLink = "", homeErr = "", homeMsg = "", inviteToken = "";
 let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"", item_amount:"", item_unit:"", notes:"" };
-let editId = "";
+let editId = "", notice = "", errCode = "", resetToken = "";
 let photoPid = "", photoVer = {};
 const app = document.getElementById("app"), nav = document.getElementById("nav");
 
@@ -335,22 +343,30 @@ function landingView() {
     '<section class="final"><h2>' + L.final_t + "</h2><p>" + L.final_s + "</p>" + cta + '</section><p class="t" style="text-align:center">' + L.foot + "</p>";
 }
 function accessView() {
-  const t = T[lang], reg = mode === "register";
-  app.innerHTML = '<button class="back" data-a="go_home">\u2190 ' + LAND[lang].back + '</button><h1>' + (reg ? t.register : t.login) + '</h1>' +
-    '<div class="tabs"><button class="tab ' + (reg ? "" : "on") + '" id="tl">' + t.login + '</button><button class="tab ' + (reg ? "on" : "") + '" id="tr">' + t.register + '</button></div>' +
-    '<div class="f"><label class="lbl" for="em">' + t.email + '</label><input id="em" type="email" autocomplete="email" value="' + esc(vals.email) + '"></div>' +
+  const t = T[lang], reg = mode === "register", fg = mode === "forgot", rs = mode === "reset";
+  const title = rs ? t.new_pw : fg ? t.forgot_t : reg ? t.register : t.login;
+  const btn = rs ? t.save_pw : fg ? t.send_link : reg ? t.register : t.login;
+  app.innerHTML = '<button class="back" data-a="go_home">\u2190 ' + LAND[lang].back + '</button><h1>' + title + '</h1>' +
+    (fg || rs ? "" : '<div class="tabs"><button class="tab ' + (reg ? "" : "on") + '" id="tl">' + t.login + '</button><button class="tab ' + (reg ? "on" : "") + '" id="tr">' + t.register + '</button></div>') +
+    (notice ? '<p class="ok"><span class="dot"></span>' + esc(notice) + "</p>" : "") +
+    (rs ? "" : '<div class="f"><label class="lbl" for="em">' + t.email + '</label><input id="em" type="email" autocomplete="email" value="' + esc(vals.email) + '"></div>') +
     (reg && !inviteToken ? '<div class="f"><label class="lbl" for="hm">' + t.home + '</label><input id="hm" maxlength="60" value="' + esc(vals.home) + '"></div>' : "") +
-    '<div class="f"><label class="lbl" for="pw">' + t.password + '</label><input id="pw" type="password" autocomplete="' + (reg ? "new-password" : "current-password") + '" value="' + esc(vals.password) + '"></div>' +
+    (fg ? "" : '<div class="f"><label class="lbl" for="pw">' + (rs ? t.new_pw : t.password) + '</label><input id="pw" type="password" autocomplete="' + (reg || rs ? "new-password" : "current-password") + '" value="' + esc(vals.password) + '"></div>') +
     (err ? '<p class="err" role="alert">' + esc(err) + "</p>" : "") +
-    '<div id="cf"></div><button class="btn p" id="go"' + (busy ? " disabled" : "") + ">" + (busy ? t.wait : (reg ? t.register : t.login)) + "</button>" +
-    '<p class="t">' + (reg ? (inviteToken ? t.invited : t.first) : t.rules) + "</p>";
-  document.getElementById("tl").onclick = () => { mode = "login"; err = ""; render(); };
-  document.getElementById("tr").onclick = () => { mode = "register"; err = ""; render(); };
-  document.getElementById("em").oninput = (e) => { vals.email = e.target.value; };
-  document.getElementById("pw").oninput = (e) => { vals.password = e.target.value; };
-  if (reg && !inviteToken) document.getElementById("hm").oninput = (e) => { vals.home = e.target.value; };
+    (errCode === "email_not_verified" ? '<button class="mini" style="margin-bottom:14px" data-a="resend">' + t.resend + "</button>" : "") +
+    (rs ? "" : '<div id="cf"></div>') +
+    '<button class="btn p" id="go"' + (busy ? " disabled" : "") + ">" + (busy ? t.wait : btn) + "</button>" +
+    (mode === "login" ? '<button class="back" style="margin-top:10px" data-a="go_forgot">' + t.forgot + "</button>" : "") +
+    '<p class="t">' + (reg ? (inviteToken ? t.invited : t.first) : mode === "login" ? t.rules : "") + "</p>";
+  const tl = document.getElementById("tl"), tr = document.getElementById("tr");
+  if (tl) tl.onclick = () => { mode = "login"; err = ""; notice = ""; errCode = ""; render(); };
+  if (tr) tr.onclick = () => { mode = "register"; err = ""; notice = ""; errCode = ""; render(); };
+  const em = document.getElementById("em"), pw = document.getElementById("pw"), hm = document.getElementById("hm");
+  if (em) em.oninput = (e) => { vals.email = e.target.value; };
+  if (pw) pw.oninput = (e) => { vals.password = e.target.value; };
+  if (hm) hm.oninput = (e) => { vals.home = e.target.value; };
   document.getElementById("go").onclick = submit;
-  mountCaptcha();
+  if (!rs) mountCaptcha();
 }
 function opts(list, sel, label) {
   return list.map((v) => '<option value="' + esc(v) + '"' + (v === sel ? " selected" : "") + ">" + esc(label(v)) + "</option>").join("");
@@ -481,13 +497,26 @@ function render() {
 }
 async function submit() {
   if (busy) return;
-  const body = { email: vals.email, password: vals.password, token };
-  if (mode === "register") { body.home_name = vals.home; if (inviteToken) body.invite = inviteToken; }
-  busy = true; err = ""; render();
+  const t = T[lang];
+  let path, body;
+  if (mode === "forgot") { path = "/api/forgot"; body = { email: vals.email, token }; }
+  else if (mode === "reset") { path = "/api/reset"; body = { token: resetToken, password: vals.password }; }
+  else {
+    path = mode === "register" ? "/api/register" : "/api/login";
+    body = { email: vals.email, password: vals.password, token };
+    if (mode === "register") { body.home_name = vals.home; if (inviteToken) body.invite = inviteToken; }
+  }
+  busy = true; err = ""; errCode = ""; notice = ""; render();
   try {
-    const { ok, d } = await post(mode === "register" ? "/api/register" : "/api/login", body);
-    if (ok) { vals.password = ""; busy = false; tab = "inv"; inviteToken = ""; await loadMe(); return; }
-    err = msg(d.error, d);
+    const { ok, d } = await post(path, body);
+    if (ok) {
+      busy = false; vals.password = "";
+      if (mode === "register") { notice = d.mail_sent === false ? t.reg_nomail : t.reg_ok; mode = "login"; inviteToken = ""; render(); return; }
+      if (mode === "forgot") { notice = t.forgot_ok; mode = "login"; render(); return; }
+      if (mode === "reset") { notice = t.reset_ok; mode = "login"; resetToken = ""; render(); return; }
+      tab = "inv"; await loadMe(); return;
+    }
+    err = msg(d.error, d); errCode = d.error || "";
   } catch (e) { err = msg("network"); }
   busy = false; render();
 }
@@ -656,6 +685,13 @@ const actions = {
     if (!r.ok) alert(msg(r.d.error, r.d));
     await loadData(); render();
   },
+  go_forgot: () => { mode = "forgot"; err = ""; notice = ""; errCode = ""; render(); },
+  resend: async () => {
+    const tk = token, t = T[lang];
+    const r = await post("/api/resend", { email: vals.email, token: tk });
+    notice = r.ok ? t.resend_ok : ""; err = r.ok ? "" : msg(r.d.error, r.d); errCode = r.ok ? "" : errCode;
+    render();
+  },
   go_register: () => { mode = "register"; err = ""; showAccess = true; render(); window.scrollTo(0, 0); },
   go_login: () => { mode = "login"; err = ""; showAccess = true; render(); window.scrollTo(0, 0); },
   go_home: () => { showAccess = false; render(); window.scrollTo(0, 0); },
@@ -712,6 +748,10 @@ document.getElementById("en").onclick = () => { lang = "en"; render(); };
 const jm = location.hash.match(/^#join=([\w-]+)$/);
 if (jm) { inviteToken = jm[1]; mode = "register"; history.replaceState(null, "", location.pathname); }
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+const hv = location.hash.match(/^#verify=([\w-]+)$/), hr = location.hash.match(/^#reset=([\w-]+)$/);
+if (hv || hr) history.replaceState(null, "", location.pathname);
+if (hr) { resetToken = hr[1]; mode = "reset"; showAccess = true; }
+if (hv) { showAccess = true; mode = "login"; post("/api/verify", { token: hv[1] }).then((r) => { notice = r.ok ? T[lang].verified_ok : ""; err = r.ok ? "" : T[lang].e.invalid_token; render(); }); }
 render(); loadMe();
 </script>
 </body>
