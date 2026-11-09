@@ -562,6 +562,24 @@ async function resetPassword(req, env) {
   return json({ ok: true });
 }
 
+async function exportData(env, u) {
+  if (u.role !== "manager") return json({ error: "forbidden" }, 403);
+  const rows = (sql) => env.DB.prepare(sql).bind(u.home_id).all().then((r) => r.results);
+  const home = await env.DB.prepare("SELECT id, name, created_at FROM homes WHERE id = ?").bind(u.home_id).first();
+  const data = {
+    version: 1, exported_at: new Date().toISOString(), home,
+    members: await rows("SELECT id, email, role, email_verified, created_at FROM people WHERE home_id = ?"),
+    locations: await rows("SELECT id, name FROM locations WHERE home_id = ?"),
+    products: await rows("SELECT id, name, category, barcode, unit, min_stock, pack_size, pack_label, item_amount, item_unit, photo, created_at FROM products WHERE home_id = ?"),
+    batches: await rows("SELECT b.* FROM batches b JOIN products p ON p.id = b.product_id WHERE p.home_id = ?"),
+    movements: await rows("SELECT m.* FROM movements m JOIN batches b ON b.id = m.batch_id JOIN products p ON p.id = b.product_id WHERE p.home_id = ?"),
+    invitations: await rows("SELECT id, email, status, expires_at FROM invitations WHERE home_id = ?"),
+  };
+  return new Response(JSON.stringify(data), {
+    headers: { "content-type": "application/json", "content-disposition": 'attachment; filename="ihogar-respaldo-' + new Date().toISOString().slice(0, 10) + '.json"', "cache-control": "no-store" },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -581,7 +599,7 @@ export default {
         const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
         return json({ email: u.email, role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
       }
-      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
+      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager", "/api/export"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
         const u = await currentUser(request, env);
         if (!u) return json({ error: "unauthorized" }, 401);
         if (request.method === "GET") {
@@ -590,6 +608,7 @@ export default {
           if (p === "/api/inventory") return await listInventory(env, u);
           const mp = p.match(/^\/api\/products\/([0-9a-f-]{36})\/photo$/);
           if (mp) return await getPhoto(env, u, mp[1]);
+          if (p === "/api/export") return await exportData(env, u);
           if (p === "/api/home") return await homeInfo(env, u);
           if (p === "/api/lookup") return await lookup(env, u, url.searchParams.get("code") || "");
         } else if (request.method === "POST") {
