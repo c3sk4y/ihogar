@@ -109,6 +109,11 @@
   .final h2 { font-size:30px; letter-spacing:-0.8px; margin:0 0 10px; }
   .final p { color:var(--muted); margin:0 auto 22px; max-width:480px; line-height:1.55; }
   .final .cta { justify-content:center; }
+  .sum { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:0 0 14px; }
+  .sbox { position:relative; border:1.5px solid var(--line); border-radius:14px; background:#fff; padding:12px 10px 10px 16px; text-align:left; cursor:pointer; font-family:inherit; color:var(--ink); }
+  .sbox i { position:absolute; left:0; top:10px; bottom:10px; width:5px; border-radius:3px; }
+  .sbox b { display:block; font-size:24px; letter-spacing:-0.5px; }
+  .sbox span { font-size:12px; color:var(--muted); font-weight:500; }
 </style>
 </head>
 <body>
@@ -146,6 +151,9 @@ const T = {
     resend:"Reenviar correo de confirmaci\u00f3n", resend_ok:"Si la cuenta existe y falta confirmarla, te enviamos un nuevo correo.",
     reg_ok:"Cuenta creada. Te enviamos un correo para confirmarla; revisa tu bandeja y la carpeta de spam.", reg_nomail:"Cuenta creada, pero no pudimos enviar el correo. Intenta ingresar y pulsa Reenviar.",
     forgot_ok:"Si el correo tiene una cuenta, te enviamos un enlace para crear una nueva contrase\u00f1a.", reset_ok:"Contrase\u00f1a actualizada. Ya puedes ingresar.", verified_ok:"Correo confirmado. Ya puedes ingresar.",
+    all_ok:"Todo al d\u00eda: nada vencido ni por vencer.", backup_t:"Respaldo", backup_json:"Descargar respaldo completo (JSON)", backup_csv:"Descargar inventario (CSV)",
+    backup_note:"El respaldo incluye inventario, historial, ubicaciones, integrantes y fotos. No incluye contrase\u00f1as.",
+    csv_h:["Nombre", "Categor\u00eda", "Cantidad", "Unidad", "Formato", "Contenido por envase", "Ubicaci\u00f3n", "Due\u00f1o", "Fecha de compra", "Caducidad", "Detalle", "C\u00f3digo de barras"],
     del:"Eliminar lote", del_q:"\u00bfEliminar este lote? Se borra sin registrar merma. \u00dasalo solo para corregir errores.", f_loc:"Ubicaci\u00f3n", f_buy:"Fecha de compra",
     f_exp:"Caducidad (opcional)", f_exp_req:"Caducidad (obligatoria)", f_min:"Stock m\u00ednimo (opcional)", f_bar:"C\u00f3digo de barras (opcional)",
     add_title:"Agregar producto", save:"Guardar en inventario", saved:"Guardado en el inventario.",
@@ -189,6 +197,9 @@ const T = {
     resend:"Resend confirmation email", resend_ok:"If the account exists and is unconfirmed, we sent a new email.",
     reg_ok:"Account created. We sent you an email to confirm it; check your inbox and spam folder.", reg_nomail:"Account created, but we could not send the email. Try signing in and press Resend.",
     forgot_ok:"If the email has an account, we sent a link to create a new password.", reset_ok:"Password updated. You can now sign in.", verified_ok:"Email confirmed. You can now sign in.",
+    all_ok:"All good: nothing expired or expiring.", backup_t:"Backup", backup_json:"Download full backup (JSON)", backup_csv:"Download inventory (CSV)",
+    backup_note:"The backup includes inventory, history, locations, members and photos. It does not include passwords.",
+    csv_h:["Name", "Category", "Quantity", "Unit", "Format", "Content per package", "Location", "Owner", "Purchase date", "Expiry date", "Details", "Barcode"],
     del:"Delete batch", del_q:"Delete this batch? It is removed without recording waste. Use only to fix mistakes.", f_loc:"Location", f_buy:"Purchase date",
     f_exp:"Expiry date (optional)", f_exp_req:"Expiry date (required)", f_min:"Minimum stock (optional)", f_bar:"Barcode (optional)",
     add_title:"Add product", save:"Save to ", saved:"Saved to .",
@@ -404,7 +415,12 @@ function invView() {
   const t = T[lang], pc = {}, seen = {};
   inv.forEach((r) => { pc[r.product_id] = (pc[r.product_id] || 0) + 1; });
   const chips = Object.keys(t.filters).map((k) => '<button class="chip ' + (filter === k ? "on" : "") + '" data-a="filter" data-t="' + k + '">' + t.filters[k] + "</button>").join("");
-  let html = '<h1>' + t.inv_title + '</h1><div class="chips">' + chips + '</div><div class="t" style="margin:0 0 4px">' + t.fifo + "</div>";
+  let ce = 0, cs = 0; const lowSet = {};
+  inv.forEach((r) => { const s = statusOf(r); if (s.cls === "expired") ce++; else if (s.days !== null && s.days >= 0 && s.days <= SOON_DAYS) cs++; if (s.low) lowSet[r.product_id] = 1; });
+  const cl = Object.keys(lowSet).length;
+  const summary = !inv.length ? "" : (ce + cs + cl === 0 ? '<p class="ok"><span class="dot"></span>' + t.all_ok + "</p>" :
+    '<div class="sum">' + [["expired", "var(--red)", ce], ["soon", "var(--yellow)", cs], ["low", "var(--yellow)", cl]].map((x) => '<button class="sbox" data-a="filter" data-t="' + x[0] + '"><i style="background:' + x[1] + '"></i><b>' + x[2] + "</b><span>" + t.filters[x[0]] + "</span></button>").join("") + "</div>");
+  let html = '<h1>' + t.inv_title + '</h1>' + summary + '<div class="chips">' + chips + '</div><div class="t" style="margin:0 0 4px">' + t.fifo + "</div>";
   let n = 0;
   inv.forEach((r) => {
     const s = statusOf(r), firstOne = !seen[r.product_id] && pc[r.product_id] > 1;
@@ -481,6 +497,9 @@ function homeView() {
       (mine ? '<button class="mini" data-a="loc_rename" data-b="' + l.id + '">' + t.loc_rename + '</button><button class="mini" style="color:var(--red);border-color:var(--red)" data-a="loc_del" data-b="' + l.id + '">' + t.loc_del + "</button>" : "") + "</div>";
   });
   html += '<div class="row" style="margin-top:12px"><input id="loc_new" maxlength="40" placeholder="' + esc(t.loc_name) + '"><button class="mini" data-a="loc_add">' + t.loc_add + "</button></div>";
+  html += '<div class="t" style="margin:20px 0 8px;font-weight:500">' + t.backup_t + "</div>" +
+    (mine ? '<button class="btn s" style="margin-bottom:10px" data-a="export_json">' + t.backup_json + "</button>" : "") +
+    '<button class="btn s" data-a="export_csv">' + t.backup_csv + '</button><p class="t">' + t.backup_note + "</p>";
   return html + '<div style="height:24px"></div><button class="btn s" data-a="out">' + t.out + "</button>";
 }
 function render() {
@@ -635,6 +654,17 @@ async function onPhoto(e) {
 document.getElementById("ph_cam").onchange = onPhoto;
 document.getElementById("ph_gal").onchange = onPhoto;
 document.getElementById("scan_close").onclick = stopScan;
+function download(name, mime, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: mime })); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function csvText() {
+  const t = T[lang], q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+  const rows = inv.map((r) => [r.name, t.cat[r.category] || r.category, fmtQ(r.quantity), t.unit[r.unit] || r.unit, r.pack_label ? packName(r.pack_label, 1) : "", r.pack_size ? fmtQ(r.pack_size) + " " + (t.unit[r.unit] || r.unit) : "", t.loc[r.location] || r.location || "", r.owner || "", r.purchase_date, r.expiry_date || "", r.notes || "", r.barcode || ""]);
+  return "\ufeff" + [t.csv_h].concat(rows).map((x) => x.map(q).join(",")).join("\r\n");
+}
 const actions = {
   tab: (d) => { if (editId) { editId = ""; resetForm(); } tab = d.t; act = null; addMsg = ""; addErr = ""; homeErr = ""; homeMsg = ""; render(); },
   filter: (d) => { filter = d.t; act = null; render(); },
@@ -685,6 +715,12 @@ const actions = {
     if (!r.ok) alert(msg(r.d.error, r.d));
     await loadData(); render();
   },
+  export_json: async () => {
+    const r = await fetch("/api/export");
+    if (!r.ok) { let d = {}; try { d = await r.json(); } catch (e) {} alert(msg(d.error, d)); return; }
+    download("ihogar-respaldo-" + today() + ".json", "application/json", await r.text());
+  },
+  export_csv: () => download("ihogar-inventario-" + today() + ".csv", "text/csv;charset=utf-8", csvText()),
   go_forgot: () => { mode = "forgot"; err = ""; notice = ""; errCode = ""; render(); },
   resend: async () => {
     const tk = token, t = T[lang];
