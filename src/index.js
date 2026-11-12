@@ -203,7 +203,7 @@ async function setPhoto(req, env, u, pid) {
   return json({ ok: true });
 }
 const PACKS = ["box", "jar", "bottle", "pack", "can", "tube", "bag", "wrap"];
-const ITEM_UNITS = ["g", "kg", "ml", "l"];
+const ITEM_UNITS = ["g", "kg", "ml", "l", "unit"];
 const pad14 = (c) => String(c).padStart(14, "0");
 const DEFAULT_LOCS = ["kitchen", "pantry", "fridge", "bathroom", "medicine", "storage"];
 const isDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s));
@@ -241,6 +241,7 @@ async function addBatch(req, env, u) {
   if (packSize !== null && !(packSize > 0 && packSize <= 100000)) return json({ error: "invalid_pack" }, 400);
   const itemAmount = b.item_amount ? Number(b.item_amount) : null;
   const itemUnit = itemAmount ? String(b.item_unit || "") : null;
+  if (itemAmount !== null && itemAmount > 0 && !ITEM_UNITS.includes(itemUnit)) return json({ error: "item_unit_required" }, 400);
   if (itemAmount !== null && !(itemAmount > 0 && itemAmount <= 100000 && ITEM_UNITS.includes(itemUnit))) return json({ error: "invalid_pack" }, 400);
   const notes = typeof b.notes === "string" && b.notes.trim() ? b.notes.trim().slice(0, 120) : null;
   const qty = Math.round(n * (packSize || 1) * 1e6) / 1e6;
@@ -366,6 +367,7 @@ async function editBatch(req, env, u, bid) {
   if (packSize !== null && !(packSize > 0 && packSize <= 100000)) return json({ error: "invalid_pack" }, 400);
   const itemAmount = b.item_amount ? Number(b.item_amount) : null;
   const itemUnit = itemAmount ? String(b.item_unit || "") : null;
+  if (itemAmount !== null && itemAmount > 0 && !ITEM_UNITS.includes(itemUnit)) return json({ error: "item_unit_required" }, 400);
   if (itemAmount !== null && !(itemAmount > 0 && itemAmount <= 100000 && ITEM_UNITS.includes(itemUnit))) return json({ error: "invalid_pack" }, 400);
   const notes = typeof b.notes === "string" && b.notes.trim() ? b.notes.trim().slice(0, 120) : null;
   const n = Number(b.quantity);
