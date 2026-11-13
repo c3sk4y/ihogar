@@ -444,13 +444,14 @@ function parseQty(q) {
   if (m) { const [a, u] = conv(Number(m[1]), m[2]); return { pack_size: a, unit: u }; }
   return null;
 }
-async function lookup(env, u, code) {
+async function lookup(env, u, code, homeOnly) {
   if (!/^\d{6,14}$/.test(code)) return json({ error: "invalid_barcode" }, 400);
   const own = await env.DB.prepare(
     "SELECT p.id, (p.photo IS NOT NULL) AS has_photo, p.name, p.category, p.unit, p.min_stock, p.pack_size, p.pack_label, p.item_amount, p.item_unit, (SELECT b.location_id FROM batches b WHERE b.product_id = p.id ORDER BY b.created_at DESC LIMIT 1) AS location_id " +
     "FROM products p WHERE p.home_id = ? AND substr('00000000000000' || p.barcode, -14) = ?"
   ).bind(u.home_id, pad14(code)).first();
   if (own) return json({ found: "home", product: own });
+  if (homeOnly) return json({ found: null });
   try {
     const r = await fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands,image_front_small_url,quantity", {
       headers: { "user-agent": "InventarioHogar/0.1" },
@@ -649,7 +650,7 @@ export default {
           const mp = p.match(/^\/api\/products\/([0-9a-f-]{36})\/photo$/);
           if (mp) return await getPhoto(env, u, mp[1]);
           if (p === "/api/home") return await homeInfo(env, u);
-          if (p === "/api/lookup") return await lookup(env, u, url.searchParams.get("code") || "");
+          if (p === "/api/lookup") return await lookup(env, u, url.searchParams.get("code") || "", url.searchParams.get("own") === "1");
           if (p === "/api/backup") return await backup(env, u);
           if (p === "/api/export") return await exportCsv(env, u);
         } else if (request.method === "POST") {
