@@ -100,7 +100,7 @@ async function currentUser(req, env) {
   const raw = cookie(req, "sid");
   if (!raw) return null;
   return env.DB.prepare(
-    "SELECT p.id, p.email, p.role, p.home_id, h.name AS home_name FROM sessions s JOIN people p ON p.id = s.person_id LEFT JOIN homes h ON h.id = p.home_id WHERE s.id = ? AND s.expires_at > ?"
+    "SELECT p.id, p.email, p.name, p.role, p.home_id, h.name AS home_name FROM sessions s JOIN people p ON p.id = s.person_id LEFT JOIN homes h ON h.id = p.home_id WHERE s.id = ? AND s.expires_at > ?"
   ).bind(await sha256(raw), new Date().toISOString()).first();
 }
 
@@ -110,6 +110,8 @@ async function register(req, env, ip) {
   const email = norm(b.email);
   const pw = typeof b.password === "string" ? b.password : "";
   const home = typeof b.home_name === "string" ? b.home_name.trim() : "";
+  const fullName = typeof b.full_name === "string" ? b.full_name.trim().replace(/\s+/g, " ") : "";
+  if (fullName.length < 2 || fullName.length > 60) return json({ error: "invalid_full_name" }, 400);
   const invite = typeof b.invite === "string" && b.invite ? b.invite : null;
   if (!validEmail(email)) return json({ error: "invalid_email" }, 400);
   if (pw.length < 10 || pw.length > 200) return json({ error: "weak_password" }, 400);
@@ -125,14 +127,14 @@ async function register(req, env, ip) {
     const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(inv.home_id).first();
     if (c.n >= MAX_HOME) return json({ error: "home_full" }, 409);
     stmts = [
-      env.DB.prepare("INSERT INTO people (id, email, password_hash, home_id, role) VALUES (?, ?, ?, ?, 'member')").bind(pid, email, hash, inv.home_id),
+      env.DB.prepare("INSERT INTO people (id, email, password_hash, home_id, role, name) VALUES (?, ?, ?, ?, 'member', ?)").bind(pid, email, hash, inv.home_id, fullName),
       env.DB.prepare("UPDATE invitations SET status = 'accepted' WHERE id = ?").bind(inv.id),
     ];
   } else {
     const hid = crypto.randomUUID();
     stmts = [
       env.DB.prepare("INSERT INTO homes (id, name, manager_id) VALUES (?, ?, ?)").bind(hid, home, pid),
-      env.DB.prepare("INSERT INTO people (id, email, password_hash, home_id, role) VALUES (?, ?, ?, ?, 'manager')").bind(pid, email, hash, hid),
+      env.DB.prepare("INSERT INTO people (id, email, password_hash, home_id, role, name) VALUES (?, ?, ?, ?, 'manager', ?)").bind(pid, email, hash, hid, fullName),
       ...DEFAULT_LOCS.map((n) => env.DB.prepare("INSERT INTO locations (id, home_id, name) VALUES (?, ?, ?)").bind(crypto.randomUUID(), hid, n)),
     ];
   }
@@ -219,7 +221,7 @@ async function listProducts(env, u) {
 }
 async function listInventory(env, u) {
   const r = await env.DB.prepare(
-    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, p.barcode, b.location_id, b.owner_id, b.notes, p.item_amount, p.item_unit, p.pack_size, p.pack_label, (p.photo IS NOT NULL) AS has_photo, b.initial_quantity, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, o.email AS owner, " +
+    "SELECT b.id AS batch_id, b.product_id, p.name, p.category, p.unit, p.min_stock, p.barcode, b.location_id, b.owner_id, b.notes, p.item_amount, p.item_unit, p.pack_size, p.pack_label, (p.photo IS NOT NULL) AS has_photo, b.initial_quantity, b.quantity, b.purchase_date, b.expiry_date, l.name AS location, COALESCE(o.name, o.email) AS owner, " +
     "(SELECT SUM(b2.quantity) FROM batches b2 WHERE b2.product_id = p.id AND b2.status = 'active') AS total " +
     "FROM batches b JOIN products p ON p.id = b.product_id LEFT JOIN locations l ON l.id = b.location_id LEFT JOIN people o ON o.id = b.owner_id " +
     "WHERE p.home_id = ? AND b.status = 'active' " + FIFO
@@ -368,6 +370,14 @@ async function reports(env, u, url) {
   const den = out.consumption.total + out.waste.total;
   out.waste_pct = den ? Math.round((out.waste.total / den) * 100) : null;
   return json(out);
+}
+// Nombre completo del integrante, para mostrarlo como dueño (D-038).
+async function setProfile(req, env, u) {
+  const b = await readJson(req, 2000);
+  const name = b && typeof b.name === "string" ? b.name.trim().replace(/\s+/g, " ") : "";
+  if (name.length < 2 || name.length > 60) return json({ error: "invalid_full_name" }, 400);
+  await env.DB.prepare("UPDATE people SET name = ? WHERE id = ?").bind(name, u.id).run();
+  return json({ ok: true, name });
 }
 async function deleteBatch(env, u, bid) {
   const r = await env.DB.prepare("SELECT b.id, b.owner_id, b.product_id FROM batches b JOIN products p ON p.id = b.product_id WHERE b.id = ? AND p.home_id = ?").bind(bid, u.home_id).first();
@@ -543,7 +553,7 @@ async function lookup(env, u, code, homeOnly) {
   return json({ found: null });
 }
 async function homeInfo(env, u) {
-  const members = (await env.DB.prepare("SELECT id, email, role FROM people WHERE home_id = ? ORDER BY (role = 'manager') DESC, email").bind(u.home_id).all()).results;
+  const members = (await env.DB.prepare("SELECT id, email, name, role FROM people WHERE home_id = ? ORDER BY (role = 'manager') DESC, email").bind(u.home_id).all()).results;
   let invitations = [];
   if (u.role === "manager") {
     invitations = (await env.DB.prepare("SELECT id, email, expires_at FROM invitations WHERE home_id = ? AND status = 'pending' AND expires_at > ? ORDER BY created_at")
@@ -596,7 +606,7 @@ async function backup(env, u) {
   const h = u.home_id, q = (sql) => env.DB.prepare(sql).bind(h).all();
   const [home, people, invs, locs, prods, bats, movs] = await Promise.all([
     env.DB.prepare("SELECT id, name FROM homes WHERE id = ?").bind(h).first(),
-    q("SELECT id, email, role FROM people WHERE home_id = ? ORDER BY email"),
+    q("SELECT id, email, name, role FROM people WHERE home_id = ? ORDER BY email"),
     q("SELECT id, email, status, expires_at, created_at FROM invitations WHERE home_id = ? ORDER BY created_at"),
     q("SELECT id, name FROM locations WHERE home_id = ? ORDER BY name"),
     q("SELECT * FROM products WHERE home_id = ? ORDER BY name"),
@@ -615,7 +625,7 @@ const csvCell = (v) => {
 // Inventario activo en CSV, cualquier integrante (D-031).
 async function exportCsv(env, u) {
   const r = await env.DB.prepare(
-    "SELECT p.name, p.category, p.barcode, b.quantity, p.unit, p.pack_size, p.pack_label, p.item_amount, p.item_unit, l.name AS location, b.purchase_date, b.expiry_date, b.notes, o.email AS owner, p.min_stock " +
+    "SELECT p.name, p.category, p.barcode, b.quantity, p.unit, p.pack_size, p.pack_label, p.item_amount, p.item_unit, l.name AS location, b.purchase_date, b.expiry_date, b.notes, COALESCE(o.name, o.email) AS owner, p.min_stock " +
     "FROM batches b JOIN products p ON p.id = b.product_id LEFT JOIN locations l ON l.id = b.location_id LEFT JOIN people o ON o.id = b.owner_id " +
     "WHERE p.home_id = ? AND b.status = 'active' " + FIFO
   ).bind(u.home_id).all();
@@ -712,9 +722,9 @@ export default {
         const u = await currentUser(request, env);
         if (!u) return json({ error: "unauthorized" }, 401);
         const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
-        return json({ email: u.email, role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
+        return json({ email: u.email, name: u.name || "", role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
       }
-      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager", "/api/backup", "/api/export", "/api/meals", "/api/reports"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit|gift)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
+      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager", "/api/backup", "/api/export", "/api/meals", "/api/reports", "/api/profile"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit|gift)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
         const u = await currentUser(request, env);
         if (!u) return json({ error: "unauthorized" }, 401);
         if (request.method === "GET") {
@@ -733,6 +743,7 @@ export default {
           if (origin && new URL(origin).host !== url.host) return json({ error: "forbidden" }, 403);
           if (p === "/api/batches") return await addBatch(request, env, u);
           if (p === "/api/meals") return await createMeal(request, env, u);
+          if (p === "/api/profile") return await setProfile(request, env, u);
           if (p === "/api/invitations") return await createInvite(request, env, u);
           if (p === "/api/locations") return await createLocation(request, env, u);
           if (p === "/api/home/manager") return await setManager(request, env, u);
