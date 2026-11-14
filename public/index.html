@@ -161,6 +161,7 @@ const T = {
     edit:"Editar", edit_title:"Editar lote", edit_save:"Guardar cambios", edit_note:"Los datos del producto se cambian en todos sus lotes.", f_qty_edit:"Cantidad actual (en la unidad)",
     empty_soon:"Nada vence en los pr\u00f3ximos 30 d\u00edas.", empty_low:"No hay productos con stock bajo. Define un stock m\u00ednimo al agregar o editar un producto.", empty_expired:"No hay productos vencidos.", empty_mine:"No tienes productos a tu nombre.",
     use_title:"Consumir", use_scan:"Abrir c\u00e1mara", use_search:"O busca por nombre", use_none:"Este c\u00f3digo no est\u00e1 en tu hogar.", use_enter:"Ingresar este producto", use_nostock:"No hay existencias de este producto.", flip:"Cambiar c\u00e1mara", qd_q:"\u00bfCu\u00e1nto vas a consumir?", qd_avail:"Disponible", qd_other:"Otra cantidad", qd_all:"Todo",
+    fullname:"Nombre completo", name_t:"Completa tu nombre", name_d:"Lo usaremos para mostrar qui\u00e9n es el due\u00f1o de cada producto, en lugar de tu correo.", save_name:"Guardar",
     rep_btn:"Informes", rep_title:"Informes", rep_back:"Volver", rep_days:(n)=>"\u00daltimos "+n+" d\u00edas", rep_person:"Persona", rep_all:"Todos", rep_buy:"Compras", rep_use:"Consumo", rep_waste:"Desperdicio", rep_records:"registros", rep_top_use:"M\u00e1s consumidos", rep_top_waste:"M\u00e1s desperdiciados", rep_pct:(p)=>p+" % de los registros de consumo y descarte son desperdicio.", rep_empty:"No hay movimientos en este per\u00edodo.", rep_note:"Los totales cuentan registros; las cantidades se muestran solo por producto. Las compras no incluyen comidas cocinadas.",
     ck_name:"Nombre de la comida", ck_portions:"Porciones", ck_exp:"Caduca el", ck_ings:"Ingredientes", ck_scan:"Escanear ingrediente", ck_pick:"Elegir por nombre", ck_move:"Guardar el resto en el refrigerador", ck_del:"Quitar", ck_save:"Guardar comida", ck_empty:"Agrega al menos un ingrediente.", ck_ok:(n)=>"Guardado: "+n+" qued\u00f3 en el refrigerador.", qd_qc:"\u00bfCu\u00e1nto usar\u00e1s?",
     used:(n,q,l)=>"Descontado "+q+" de "+n+". Quedan "+l+".", cook_t:"Pr\u00f3ximamente", cook_d:"Elegir\u00e1s los ingredientes, se descontar\u00e1n con FIFO y la comida quedar\u00e1 guardada en el refrigerador.", gift:"Regalar", gift_to:"Regalar a", f_owner:"Due\u00f1o",
@@ -188,7 +189,7 @@ const T = {
         invalid_name:"Escribe un nombre (hasta 80 caracteres).", invalid_quantity:"La cantidad debe ser mayor que 0.", invalid_date:"Revisa las fechas.",
         expiry_required:"Alimentos y remedios necesitan fecha de caducidad.", invalid_barcode:"El c\u00f3digo de barras debe tener de 6 a 14 d\u00edgitos.",
         invalid_location:"Elige una ubicaci\u00f3n.", insufficient:"No hay suficiente cantidad. Disponible: {n}.",
-        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"No tienes permiso para hacer esto.", invalid_person:"Persona no v\u00e1lida.", invalid_pack:"Revisa el envase y su contenido.", invalid_items:"Agrega al menos un ingrediente.", item_unit_required:"Elige la unidad del contenido de cada unidad.", in_use:"No se puede eliminar: est\u00e1 en uso.", invalid_photo:"No se pudo usar esa imagen.", location_exists:"Ya existe una ubicaci\u00f3n con ese nombre.", location_in_use:"Hay productos en esa ubicaci\u00f3n. Mu\u00e9velos antes de eliminarla.", invalid_location_name:"Escribe un nombre (hasta 40 caracteres).", barcode_in_use:"Ese c\u00f3digo de barras ya pertenece a otro producto.", email_not_verified:"Debes confirmar tu correo antes de ingresar. Revisa tu bandeja y la carpeta de spam.", invalid_token:"El enlace no es v\u00e1lido o ya venci\u00f3." }
+        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"No tienes permiso para hacer esto.", invalid_person:"Persona no v\u00e1lida.", invalid_pack:"Revisa el envase y su contenido.", invalid_items:"Agrega al menos un ingrediente.", invalid_full_name:"Escribe tu nombre completo (de 2 a 60 caracteres).", item_unit_required:"Elige la unidad del contenido de cada unidad.", in_use:"No se puede eliminar: est\u00e1 en uso.", invalid_photo:"No se pudo usar esa imagen.", location_exists:"Ya existe una ubicaci\u00f3n con ese nombre.", location_in_use:"Hay productos en esa ubicaci\u00f3n. Mu\u00e9velos antes de eliminarla.", invalid_location_name:"Escribe un nombre (hasta 40 caracteres).", barcode_in_use:"Ese c\u00f3digo de barras ya pertenece a otro producto.", email_not_verified:"Debes confirmar tu correo antes de ingresar. Revisa tu bandeja y la carpeta de spam.", invalid_token:"El enlace no es v\u00e1lido o ya venci\u00f3." }
   },
   en: {
     login:"Sign in", register:"Create account", email:"Email", password:"Password", home:"Home name",
@@ -209,6 +210,7 @@ const T = {
     edit:"Edit", edit_title:"Edit batch", edit_save:"Save changes", edit_note:"Product details change in all its batches.", f_qty_edit:"Current quantity (in the unit)",
     empty_soon:"Nothing expires in the next 30 days.", empty_low:"No low-stock products. Set a minimum stock when adding or editing a product.", empty_expired:"No expired products.", empty_mine:"You have no products under your name.",
     use_title:"Use", use_scan:"Open camera", use_search:"Or search by name", use_none:"This code is not in your home.", use_enter:"Add this product", use_nostock:"There is no stock of this product.", flip:"Switch camera", qd_q:"How much will you use?", qd_avail:"Available", qd_other:"Other amount", qd_all:"All",
+    fullname:"Full name", name_t:"Add your name", name_d:"We will use it to show who owns each product, instead of your email.", save_name:"Save",
     rep_btn:"Reports", rep_title:"Reports", rep_back:"Back", rep_days:(n)=>"Last "+n+" days", rep_person:"Person", rep_all:"Everyone", rep_buy:"Purchases", rep_use:"Consumption", rep_waste:"Waste", rep_records:"records", rep_top_use:"Most used", rep_top_waste:"Most wasted", rep_pct:(p)=>p+" % of consumption and discard records are waste.", rep_empty:"There are no movements in this period.", rep_note:"Totals count records; quantities are shown per product only. Purchases do not include cooked meals.",
     ck_name:"Meal name", ck_portions:"Portions", ck_exp:"Expires on", ck_ings:"Ingredients", ck_scan:"Scan ingredient", ck_pick:"Pick by name", ck_move:"Keep the rest in the refrigerator", ck_del:"Remove", ck_save:"Save meal", ck_empty:"Add at least one ingredient.", ck_ok:(n)=>"Saved: "+n+" is now in the refrigerator.", qd_qc:"How much will you use?",
     used:(n,q,l)=>"Deducted "+q+" of "+n+". "+l+" left.", cook_t:"Coming soon", cook_d:"You will pick the ingredients, they will be deducted with FIFO and the meal will be stored in the refrigerator.", gift:"Gift", gift_to:"Gift to", f_owner:"Owner",
@@ -236,7 +238,7 @@ const T = {
         invalid_name:"Enter a name (up to 80 characters).", invalid_quantity:"Quantity must be greater than 0.", invalid_date:"Check the dates.",
         expiry_required:"Food and medicines need an expiry date.", invalid_barcode:"Barcode must have 6 to 14 digits.",
         invalid_location:"Choose a location.", insufficient:"Not enough quantity. Available: {n}.",
-        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"You do not have permission to do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", invalid_items:"Add at least one ingredient.", item_unit_required:"Choose the unit for the content of each unit.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used.", location_exists:"A location with that name already exists.", location_in_use:"There are products in that location. Move them before deleting it.", invalid_location_name:"Enter a name (up to 40 characters).", barcode_in_use:"That barcode already belongs to another product.", email_not_verified:"You must confirm your email before signing in. Check your inbox and spam folder.", invalid_token:"The link is invalid or has expired." }
+        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"You do not have permission to do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", invalid_items:"Add at least one ingredient.", invalid_full_name:"Enter your full name (2 to 60 characters).", item_unit_required:"Choose the unit for the content of each unit.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used.", location_exists:"A location with that name already exists.", location_in_use:"There are products in that location. Move them before deleting it.", invalid_location_name:"Enter a name (up to 40 characters).", barcode_in_use:"That barcode already belongs to another product.", email_not_verified:"You must confirm your email before signing in. Check your inbox and spam folder.", invalid_token:"The link is invalid or has expired." }
   }
 };
 const SOON_DAYS = 30;
@@ -253,7 +255,7 @@ const ICON = {
   use:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5h3M17 4h3v3M20 16v3h-3M7 20H4v-3M8 9v6M12 9v6M16 9v6"/></svg>',
   cook:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14v6a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-6zM3 11h18M9 7c0-1 1-1 1-2M14 7c0-1 1-1 1-2"/></svg>'
 };
-let lang = "es", mode = "login", user = undefined, showAccess = false, token = "", err = "", busy = false, vals = { email:"", password:"", home:"" };
+let lang = "es", mode = "login", user = undefined, showAccess = false, token = "", err = "", busy = false, vals = { email:"", password:"", home:"", name:"" };
 let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, actErr = "", addMsg = "", addErr = "", lookupMsg = "", hm = null, invLink = "", homeErr = "", homeMsg = "", inviteToken = "";
 let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"", item_amount:"", item_unit:"", notes:"", owner_id:"" };
 let editId = "", notice = "", errCode = "", resetToken = "";
@@ -384,6 +386,7 @@ function accessView() {
     (fg || rs ? "" : '<div class="tabs"><button class="tab ' + (reg ? "" : "on") + '" id="tl">' + t.login + '</button><button class="tab ' + (reg ? "on" : "") + '" id="tr">' + t.register + '</button></div>') +
     (notice ? '<p class="ok"><span class="dot"></span>' + esc(notice) + "</p>" : "") +
     (rs ? "" : '<div class="f"><label class="lbl" for="em">' + t.email + '</label><input id="em" type="email" autocomplete="email" value="' + esc(vals.email) + '"></div>') +
+    (reg ? '<div class="f"><label class="lbl" for="fn">' + t.fullname + '</label><input id="fn" maxlength="60" autocomplete="name" value="' + esc(vals.name) + '"></div>' : "") +
     (reg && !inviteToken ? '<div class="f"><label class="lbl" for="hm">' + t.home + '</label><input id="hm" maxlength="60" value="' + esc(vals.home) + '"></div>' : "") +
     (fg ? "" : '<div class="f"><label class="lbl" for="pw">' + (rs ? t.new_pw : t.password) + '</label><input id="pw" type="password" autocomplete="' + (reg || rs ? "new-password" : "current-password") + '" value="' + esc(vals.password) + '"></div>') +
     (err ? '<p class="err" role="alert">' + esc(err) + "</p>" : "") +
@@ -397,6 +400,7 @@ function accessView() {
   if (tr) tr.onclick = () => { mode = "register"; err = ""; notice = ""; errCode = ""; render(); };
   const em = document.getElementById("em"), pw = document.getElementById("pw"), hm = document.getElementById("hm");
   if (em) em.oninput = (e) => { vals.email = e.target.value; };
+  const fn = document.getElementById("fn"); if (fn) fn.oninput = (e) => { vals.name = e.target.value; };
   if (pw) pw.oninput = (e) => { vals.password = e.target.value; };
   if (hm) hm.oninput = (e) => { vals.home = e.target.value; };
   document.getElementById("go").onclick = submit;
@@ -436,7 +440,7 @@ function statusOf(r) {
 }
 function giftPanel(r) {
   const t = T[lang], others = (hm ? hm.members : []).filter((m) => m.id !== r.owner_id);
-  return '<label class="lbl" for="gt">' + t.gift_to + '</label><select id="gt">' + others.map((m) => '<option value="' + esc(m.id) + '">' + esc(m.email) + "</option>").join("") + "</select>" +
+  return '<label class="lbl" for="gt">' + t.gift_to + '</label><select id="gt">' + others.map((m) => '<option value="' + esc(m.id) + '">' + esc(pn(m)) + "</option>").join("") + "</select>" +
     (actErr ? '<p class="err" style="margin:8px 0 0">' + esc(actErr) + "</p>" : "") +
     '<div class="two"><button class="btn p" data-a="gift_ok" data-b="' + r.batch_id + '">' + t.confirm + '</button><button class="btn s" data-a="cancel">' + t.cancel + "</button></div>";
 }
@@ -484,7 +488,7 @@ function addView() {
     '<div class="grid">' +
     '<div class="f"><label class="lbl" for="f_category">' + t.f_cat + '</label><select id="f_category" data-f="category">' + opts(["food", "cleaning", "supplies", "medicine"], form.category, (v) => t.cat[v]) + "</select></div>" +
     '<div class="f"><label class="lbl" for="f_location_id">' + t.f_loc + '</label><select id="f_location_id" data-f="location_id">' + opts(locs.map((l) => l.id).concat(["__new__"]), form.location_id, (id) => { if (id === "__new__") return t.loc_new; const l = locs.find((x) => x.id === id); return t.loc[l.name] || l.name; }) + "</select>" + (form.location_id === "__new__" ? '<input id="f_new_location" data-f="new_location" maxlength="40" placeholder="' + esc(t.loc_name) + '" style="margin-top:8px" value="' + esc(form.new_location) + '">' : "") + "</div>" +
-    (hm && hm.members.length > 1 ? '<div class="f"><label class="lbl" for="f_owner_id">' + t.f_owner + '</label><select id="f_owner_id" data-f="owner_id">' + opts(hm.members.map((m) => m.id), form.owner_id || hm.me, (id) => hm.members.find((m) => m.id === id).email) + "</select></div>" : "") +
+    (hm && hm.members.length > 1 ? '<div class="f"><label class="lbl" for="f_owner_id">' + t.f_owner + '</label><select id="f_owner_id" data-f="owner_id">' + opts(hm.members.map((m) => m.id), form.owner_id || hm.me, (id) => pn(hm.members.find((m) => m.id === id))) + "</select></div>" : "") +
     '<div class="f"><label class="lbl" for="f_quantity">' + t.f_qty + '</label><input id="f_quantity" data-f="quantity" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.quantity) + '"></div>' +
     '<div class="f"><label class="lbl" for="f_pack_label">' + t.f_pack + '</label><select id="f_pack_label" data-f="pack_label"><option value="">' + t.f_pack_none + "</option>" + opts(["bag", "wrap", "box", "pack", "bottle", "jar", "can", "tube"], form.pack_label, (v) => t.pack[v][0]) + "</select></div>" +
     '<div class="f"><label class="lbl" for="f_pack_size">' + t.f_content + '</label><input id="f_pack_size" data-f="pack_size" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.pack_size) + '"></div>' +
@@ -503,7 +507,7 @@ function homeView() {
   const mem = hm ? hm.members : [], pend = hm ? hm.invitations : [], max = user.home.max;
   let html = '<h1>' + esc(user.home.name) + '</h1><div class="t" style="margin:-8px 0 8px">' + t.members + " " + mem.length + " " + t.of + " " + max + "</div>";
   mem.forEach((m) => {
-    html += '<div class="mem"><div class="av">' + esc(m.email[0].toUpperCase()) + '</div><div style="flex:1;min-width:0"><div class="val" style="overflow:hidden;text-overflow:ellipsis">' + esc(m.email) + '</div><div class="t" style="margin:0">' + (m.role === "manager" ? t.role_manager : t.role_member) + "</div></div>" +
+    html += '<div class="mem"><div class="av">' + esc(pn(m)[0].toUpperCase()) + '</div><div style="flex:1;min-width:0"><div class="val" style="overflow:hidden;text-overflow:ellipsis">' + esc(pn(m)) + '</div><div class="t" style="margin:0">' + (m.role === "manager" ? t.role_manager : t.role_member) + (m.name ? " \u00b7 " + esc(m.email) : "") + "</div></div>" +
       (mine && hm && m.id !== hm.me ? '<button class="mini" data-a="make_mgr" data-p="' + m.id + '">' + t.make_mgr + "</button>" : "") + "</div>";
   });
   if (mine) {
@@ -588,7 +592,7 @@ function cookView() {
     '<div class="f"><label class="lbl" for="ck_name">' + t.ck_name + '</label><input id="ck_name" data-ck="name" maxlength="80" autocomplete="off" value="' + esc(c.name) + '"></div>' +
     '<div class="grid"><div class="f"><label class="lbl" for="ck_portions">' + t.ck_portions + '</label><input id="ck_portions" data-ck="portions" type="number" inputmode="decimal" min="0" step="any" value="' + esc(c.portions) + '"></div>' +
     '<div class="f"><label class="lbl" for="ck_exp">' + t.ck_exp + '</label><input id="ck_exp" data-ck="expiry_date" type="date" value="' + esc(c.expiry_date) + '"></div>' +
-    (mem.length > 1 ? '<div class="f full"><label class="lbl" for="ck_owner">' + t.f_owner + '</label><select id="ck_owner" data-ck="owner_id">' + opts(mem.map((m) => m.id), c.owner_id || hm.me, (id) => mem.find((m) => m.id === id).email) + "</select></div>" : "") + "</div>" +
+    (mem.length > 1 ? '<div class="f full"><label class="lbl" for="ck_owner">' + t.f_owner + '</label><select id="ck_owner" data-ck="owner_id">' + opts(mem.map((m) => m.id), c.owner_id || hm.me, (id) => pn(mem.find((m) => m.id === id))) + "</select></div>" : "") + "</div>" +
     '<div class="lbl" style="margin:4px 0 0">' + t.ck_ings + "</div>" + (items || '<p class="t" style="margin:6px 0 12px">' + t.ck_empty + "</p>") +
     '<div class="two"><button class="btn s" data-a="ck_scan">' + t.ck_scan + '</button><button class="btn s" data-a="ck_pick">' + t.ck_pick + "</button></div>" +
     (c.pick ? '<div class="f" style="margin-top:12px"><input id="ck_q" autocomplete="off" placeholder="' + esc(t.use_search) + '" value="' + esc(ckQ) + '"></div><div id="ck_list">' + usList(ckQ) + "</div>" : "") +
@@ -602,7 +606,7 @@ function topList(title, arr) {
 function repView() {
   const t = T[lang], r = rep, d = r.data, mem = hm ? hm.members : [], cats = ["food", "cleaning", "supplies", "medicine"];
   const chips = [7, 30, 90].map((n) => '<button class="chip ' + (r.days === n ? "on" : "") + '" data-a="rep_days" data-d="' + n + '">' + t.rep_days(n) + "</button>").join("");
-  const who = mem.length > 1 ? '<div class="f"><label class="lbl" for="rp_person">' + t.rep_person + '</label><select id="rp_person" data-rp="1"><option value="all"' + (r.person === "all" ? " selected" : "") + ">" + t.rep_all + "</option>" + mem.map((m) => '<option value="' + esc(m.id) + '"' + (r.person === m.id ? " selected" : "") + ">" + esc(m.email) + "</option>").join("") + "</select></div>" : "";
+  const who = mem.length > 1 ? '<div class="f"><label class="lbl" for="rp_person">' + t.rep_person + '</label><select id="rp_person" data-rp="1"><option value="all"' + (r.person === "all" ? " selected" : "") + ">" + t.rep_all + "</option>" + mem.map((m) => '<option value="' + esc(m.id) + '"' + (r.person === m.id ? " selected" : "") + ">" + esc(pn(m)) + "</option>").join("") + "</select></div>" : "";
   let body = r.busy && !d ? '<p class="t">' + t.loading + "</p>" : "";
   if (r.err) body = '<p class="err" role="alert">' + esc(r.err) + "</p>";
   else if (d) {
@@ -624,6 +628,26 @@ async function loadReport() {
   if (r.ok) rep.data = r.d; else rep.err = msg(r.d.error, r.d);
   render();
 }
+let nameVal = "", nameErr = "", nameBusy = false;
+const pn = (m) => m.name || m.email;
+function nameView() {
+  const t = T[lang]; nav.innerHTML = "";
+  app.innerHTML = '<h1>' + t.name_t + '</h1><p class="t">' + t.name_d + '</p><div class="f"><label class="lbl" for="fn2">' + t.fullname + '</label><input id="fn2" maxlength="60" autocomplete="name" value="' + esc(nameVal) + '"></div>' +
+    (nameErr ? '<p class="err" role="alert">' + esc(nameErr) + "</p>" : "") + '<button class="btn p" id="fn_go"' + (nameBusy ? " disabled" : "") + ">" + (nameBusy ? t.wait : t.save_name) + "</button>";
+  document.getElementById("fn2").oninput = (e) => { nameVal = e.target.value; };
+  document.getElementById("fn_go").onclick = saveName;
+}
+async function saveName() {
+  const t = T[lang], v = nameVal.trim();
+  if (v.length < 2) { nameErr = t.e.invalid_full_name; render(); return; }
+  nameBusy = true; nameErr = ""; render();
+  try {
+    const r = await post("/api/profile", { name: v });
+    if (r.ok) { user.name = r.d.name; nameBusy = false; await loadData(); render(); return; }
+    nameErr = msg(r.d.error, r.d);
+  } catch (e) { nameErr = msg("network"); }
+  nameBusy = false; render();
+}
 function render() {
   const t = T[lang];
   document.documentElement.lang = lang;
@@ -633,6 +657,7 @@ function render() {
   document.body.classList.toggle("landing", isLanding); app.className = isLanding ? "wide" : "";
   if (user === undefined) { app.innerHTML = '<p class="t">' + t.loading + "</p>"; nav.innerHTML = ""; return; }
   if (!user) { nav.innerHTML = ""; if (isLanding) landingView(); else accessView(); return; }
+  if (!user.name) { nameView(); return; }
   app.innerHTML = tab === "add" ? addView() : tab === "home" ? homeView() : tab === "use" ? useView() : tab === "cook" ? cookView() : tab === "rep" ? repView() : invView();
   nav.innerHTML = ["inv", "add", "use", "cook", "home"].map((k) => '<button class="' + ((tab === "rep" ? "home" : tab) === k ? "on" : "") + '" data-a="tab" data-t="' + k + '">' + ICON[k] + "<span>" + t.nav[k] + "</span></button>").join("");
 }
@@ -645,7 +670,7 @@ async function submit() {
   else {
     path = mode === "register" ? "/api/register" : "/api/login";
     body = { email: vals.email, password: vals.password, token };
-    if (mode === "register") { body.home_name = vals.home; if (inviteToken) body.invite = inviteToken; }
+    if (mode === "register") { body.home_name = vals.home; body.full_name = vals.name; if (inviteToken) body.invite = inviteToken; }
   }
   busy = true; err = ""; errCode = ""; notice = ""; render();
   try {
