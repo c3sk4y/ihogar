@@ -344,6 +344,31 @@ async function createMeal(req, env, u) {
   await env.DB.batch(stmts);
   return json({ ok: true, id: bid }, 201);
 }
+// Informes de compras, consumo y desperdicio a partir del historial (D-037).
+async function reports(env, u, url) {
+  const dn = Number(url.searchParams.get("days")), days = [7, 30, 90].includes(dn) ? dn : 30;
+  let person = url.searchParams.get("person") || "all";
+  if (person !== "all") { const o = await homePerson(env, u, person); if (!o) return json({ error: "invalid_person" }, 400); person = o.id; }
+  const sql = "SELECT m.type AS type, CASE WHEN m.type = 'in' AND m.note = 'cook' THEN 1 ELSE 0 END AS meal, p.id AS pid, p.name AS name, p.category AS cat, p.unit AS unit, COUNT(*) AS n, SUM(m.quantity) AS q " +
+    "FROM movements m JOIN batches b ON b.id = m.batch_id JOIN products p ON p.id = b.product_id " +
+    "WHERE p.home_id = ? AND m.type IN ('in', 'use', 'cook', 'waste') AND m.created_at >= datetime('now', ?)" + (person !== "all" ? " AND m.person_id = ?" : "") + " GROUP BY m.type, meal, p.id";
+  const binds = [u.home_id, "-" + days + " days"]; if (person !== "all") binds.push(person);
+  const rows = (await env.DB.prepare(sql).bind(...binds).all()).results;
+  const blank = () => ({ total: 0, by_cat: { food: 0, cleaning: 0, supplies: 0, medicine: 0 } });
+  const out = { days, person, purchases: blank(), consumption: blank(), waste: blank() };
+  const use = new Map(), wst = new Map();
+  for (const r of rows) {
+    const blk = r.type === "in" ? (r.meal ? null : out.purchases) : r.type === "waste" ? out.waste : out.consumption;
+    if (blk) { blk.total += r.n; if (blk.by_cat[r.cat] !== undefined) blk.by_cat[r.cat] += r.n; }
+    const mp = r.type === "waste" ? wst : (r.type === "use" || r.type === "cook") ? use : null;
+    if (mp) { const x = mp.get(r.pid) || { name: r.name, unit: r.unit, q: 0, n: 0 }; x.q += r.q; x.n += r.n; mp.set(r.pid, x); }
+  }
+  const top = (mp) => [...mp.values()].sort((a, b) => b.n - a.n || b.q - a.q).slice(0, 5).map((x) => ({ name: x.name, unit: x.unit, q: Math.round(x.q * 1e6) / 1e6, n: x.n }));
+  out.top_used = top(use); out.top_waste = top(wst);
+  const den = out.consumption.total + out.waste.total;
+  out.waste_pct = den ? Math.round((out.waste.total / den) * 100) : null;
+  return json(out);
+}
 async function deleteBatch(env, u, bid) {
   const r = await env.DB.prepare("SELECT b.id, b.owner_id, b.product_id FROM batches b JOIN products p ON p.id = b.product_id WHERE b.id = ? AND p.home_id = ?").bind(bid, u.home_id).first();
   if (!r) return json({ error: "not_found" }, 404);
@@ -689,7 +714,7 @@ export default {
         const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
         return json({ email: u.email, role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
       }
-      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager", "/api/backup", "/api/export", "/api/meals"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit|gift)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
+      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager", "/api/backup", "/api/export", "/api/meals", "/api/reports"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit|gift)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
         const u = await currentUser(request, env);
         if (!u) return json({ error: "unauthorized" }, 401);
         if (request.method === "GET") {
@@ -702,6 +727,7 @@ export default {
           if (p === "/api/lookup") return await lookup(env, u, url.searchParams.get("code") || "", url.searchParams.get("own") === "1");
           if (p === "/api/backup") return await backup(env, u);
           if (p === "/api/export") return await exportCsv(env, u);
+          if (p === "/api/reports") return await reports(env, u, url);
         } else if (request.method === "POST") {
           const origin = request.headers.get("origin");
           if (origin && new URL(origin).host !== url.host) return json({ error: "forbidden" }, 403);
