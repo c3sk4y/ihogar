@@ -148,7 +148,7 @@ const T = {
     nav:{ inv:"Inventario", add:"Ingresar", use:"Consumir", cook:"Cocinar", home:"Hogar" },
     filters:{ all:"Todo", soon:"Por vencer", low:"Stock bajo", expired:"Vencidos", mine:"M\u00edos" },
     cat:{ food:"Alimentos", cleaning:"Limpieza", supplies:"Insumos", medicine:"Remedios" },
-    unit:{ unit:"unid.", kg:"kg", g:"g", l:"litro(s)", ml:"ml", dose:"dosis", sachet:"bolsitas", tablet:"comprimidos" },
+    unit:{ unit:"unid.", kg:"kg", g:"g", l:"litro(s)", ml:"ml", dose:"dosis", sachet:"bolsitas", tablet:"comprimidos", portion:"porciones" },
     pack:{ plasticcup:["vaso plastico","vasos plasticos"], bag:["bolsa","bolsas"], wrap:["empaque","empaques"], box:["caja","cajas"], pack:["pack","packs"], bottle:["botella","botellas"], jar:["tarro","tarros"], can:["lata","latas"], tube:["tubo","tubos"] },
     loc:{ smallroom:"Habitaci\u00f3n Chica", pantrykitchen:"Despensa em Cocina", cupboarddiningroom:"Alacena del Comedor",kitchen:"Cocina", pantry:"Despensa", fridge:"Refrigerador", bathroom:"Ba\u00f1o", medicine:"Botiqu\u00edn", storage:"Bodega" },
     f_name:"Descripci\u00f3n del producto", f_notes:"Detalle de esta compra (opcional)", notes_ph:"Ej.: variados sabores", f_item:"Contenido de cada unidad (opcional)", total:"Total", left:"restantes", of_pack:"de", use_full:"Envase completo", f_cat:"Categor\u00eda", f_qty:"Cantidad de envases", f_unit:"Unidad del contenido", f_pack:"Formato", f_pack_none:"Sin formato (suelto)", f_content:"Contenido por envase",
@@ -159,6 +159,7 @@ const T = {
     edit:"Editar", edit_title:"Editar lote", edit_save:"Guardar cambios", edit_note:"Los datos del producto se cambian en todos sus lotes.", f_qty_edit:"Cantidad actual (en la unidad)",
     empty_soon:"Nada vence en los pr\u00f3ximos 30 d\u00edas.", empty_low:"No hay productos con stock bajo. Define un stock m\u00ednimo al agregar o editar un producto.", empty_expired:"No hay productos vencidos.", empty_mine:"No tienes productos a tu nombre.",
     use_title:"Consumir", use_scan:"Abrir c\u00e1mara", use_search:"O busca por nombre", use_none:"Este c\u00f3digo no est\u00e1 en tu hogar.", use_enter:"Ingresar este producto", use_nostock:"No hay existencias de este producto.", flip:"Cambiar c\u00e1mara", qd_q:"\u00bfCu\u00e1nto vas a consumir?", qd_avail:"Disponible", qd_other:"Otra cantidad", qd_all:"Todo",
+    ck_name:"Nombre de la comida", ck_portions:"Porciones", ck_exp:"Caduca el", ck_ings:"Ingredientes", ck_scan:"Escanear ingrediente", ck_pick:"Elegir por nombre", ck_move:"Guardar el resto en el refrigerador", ck_del:"Quitar", ck_save:"Guardar comida", ck_empty:"Agrega al menos un ingrediente.", ck_ok:(n)=>"Guardado: "+n+" qued\u00f3 en el refrigerador.", qd_qc:"\u00bfCu\u00e1nto usar\u00e1s?",
     used:(n,q,l)=>"Descontado "+q+" de "+n+". Quedan "+l+".", cook_t:"Pr\u00f3ximamente", cook_d:"Elegir\u00e1s los ingredientes, se descontar\u00e1n con FIFO y la comida quedar\u00e1 guardada en el refrigerador.", gift:"Regalar", gift_to:"Regalar a", f_owner:"Due\u00f1o",
     bk_t:"Respaldo de datos", bk_csv:"Descargar inventario (CSV)", bk_json:"Descargar respaldo completo (JSON)", bk_note:"Descarga una copia de vez en cuando y gu\u00e1rdala fuera del celular. El respaldo JSON es solo para el gestor y no incluye contrase\u00f1as.",
     photo_failed:"No se pudo traer la foto del producto; puedes tomarla t\u00fa.",
@@ -184,7 +185,7 @@ const T = {
         invalid_name:"Escribe un nombre (hasta 80 caracteres).", invalid_quantity:"La cantidad debe ser mayor que 0.", invalid_date:"Revisa las fechas.",
         expiry_required:"Alimentos y remedios necesitan fecha de caducidad.", invalid_barcode:"El c\u00f3digo de barras debe tener de 6 a 14 d\u00edgitos.",
         invalid_location:"Elige una ubicaci\u00f3n.", insufficient:"No hay suficiente cantidad. Disponible: {n}.",
-        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"No tienes permiso para hacer esto.", invalid_person:"Persona no v\u00e1lida.", invalid_pack:"Revisa el envase y su contenido.", item_unit_required:"Elige la unidad del contenido de cada unidad.", in_use:"No se puede eliminar: est\u00e1 en uso.", invalid_photo:"No se pudo usar esa imagen.", location_exists:"Ya existe una ubicaci\u00f3n con ese nombre.", location_in_use:"Hay productos en esa ubicaci\u00f3n. Mu\u00e9velos antes de eliminarla.", invalid_location_name:"Escribe un nombre (hasta 40 caracteres).", barcode_in_use:"Ese c\u00f3digo de barras ya pertenece a otro producto.", email_not_verified:"Debes confirmar tu correo antes de ingresar. Revisa tu bandeja y la carpeta de spam.", invalid_token:"El enlace no es v\u00e1lido o ya venci\u00f3." }
+        invalid_invite:"Invitaci\u00f3n no v\u00e1lida o vencida.", home_full:"El hogar ya tiene 3 personas.", forbidden:"No tienes permiso para hacer esto.", invalid_person:"Persona no v\u00e1lida.", invalid_pack:"Revisa el envase y su contenido.", invalid_items:"Agrega al menos un ingrediente.", item_unit_required:"Elige la unidad del contenido de cada unidad.", in_use:"No se puede eliminar: est\u00e1 en uso.", invalid_photo:"No se pudo usar esa imagen.", location_exists:"Ya existe una ubicaci\u00f3n con ese nombre.", location_in_use:"Hay productos en esa ubicaci\u00f3n. Mu\u00e9velos antes de eliminarla.", invalid_location_name:"Escribe un nombre (hasta 40 caracteres).", barcode_in_use:"Ese c\u00f3digo de barras ya pertenece a otro producto.", email_not_verified:"Debes confirmar tu correo antes de ingresar. Revisa tu bandeja y la carpeta de spam.", invalid_token:"El enlace no es v\u00e1lido o ya venci\u00f3." }
   },
   en: {
     login:"Sign in", register:"Create account", email:"Email", password:"Password", home:"Home name",
@@ -194,7 +195,7 @@ const T = {
     nav:{ inv:"Inventory", add:"Add", use:"Use", cook:"Cook", home:"Home" },
     filters:{ all:"All", soon:"Expiring", low:"Low stock", expired:"Expired", mine:"Mine" },
     cat:{ food:"Food", cleaning:"Cleaning", supplies:"Supplies", medicine:"Medicines" },
-    unit:{ unit:"units", kg:"kg", g:"g", l:"liter(s)", ml:"ml", dose:"doses", sachet:"sachets", tablet:"tablets" },
+    unit:{ unit:"units", kg:"kg", g:"g", l:"liter(s)", ml:"ml", dose:"doses", sachet:"sachets", tablet:"tablets", portion:"portions" },
     pack:{ plasticcup:["plastic cup","plastic cups"], bag:["bag","bags"], wrap:["wrapper","wrappers"], box:["box","boxes"], pack:["pack","packs"], bottle:["bottle","bottles"], jar:["jar","jars"], can:["can","cans"], tube:["tube","tubes"] },
     loc:{ smallroom:"small room", cupboarddiningroom:"dining room cupboard",pantrykitchen:"kitchen pantry", kitchen:"Kitchen", pantry:"Pantry", fridge:"Refrigerator", bathroom:"Bathroom", medicine:"Medicine cabinet", storage:"Storage room" },
     f_name:"Product description", f_notes:"Details of this purchase (optional)", notes_ph:"E.g.: assorted flavors", f_item:"Content of each unit (optional)", total:"Total", left:"left", of_pack:"of", use_full:"Whole package", f_cat:"Category", f_qty:"Number of packages", f_unit:"Content unit", f_pack:"Format", f_pack_none:"No format (loose)", f_content:"Content per package",
@@ -205,6 +206,7 @@ const T = {
     edit:"Edit", edit_title:"Edit batch", edit_save:"Save changes", edit_note:"Product details change in all its batches.", f_qty_edit:"Current quantity (in the unit)",
     empty_soon:"Nothing expires in the next 30 days.", empty_low:"No low-stock products. Set a minimum stock when adding or editing a product.", empty_expired:"No expired products.", empty_mine:"You have no products under your name.",
     use_title:"Use", use_scan:"Open camera", use_search:"Or search by name", use_none:"This code is not in your home.", use_enter:"Add this product", use_nostock:"There is no stock of this product.", flip:"Switch camera", qd_q:"How much will you use?", qd_avail:"Available", qd_other:"Other amount", qd_all:"All",
+    ck_name:"Meal name", ck_portions:"Portions", ck_exp:"Expires on", ck_ings:"Ingredients", ck_scan:"Scan ingredient", ck_pick:"Pick by name", ck_move:"Keep the rest in the refrigerator", ck_del:"Remove", ck_save:"Save meal", ck_empty:"Add at least one ingredient.", ck_ok:(n)=>"Saved: "+n+" is now in the refrigerator.", qd_qc:"How much will you use?",
     used:(n,q,l)=>"Deducted "+q+" of "+n+". "+l+" left.", cook_t:"Coming soon", cook_d:"You will pick the ingredients, they will be deducted with FIFO and the meal will be stored in the refrigerator.", gift:"Gift", gift_to:"Gift to", f_owner:"Owner",
     bk_t:"Data backup", bk_csv:"Download inventory (CSV)", bk_json:"Download full backup (JSON)", bk_note:"Download a copy now and then and keep it off the phone. The JSON backup is manager-only and has no passwords.",
     photo_failed:"The product photo could not be fetched; you can take one yourself.",
@@ -230,7 +232,7 @@ const T = {
         invalid_name:"Enter a name (up to 80 characters).", invalid_quantity:"Quantity must be greater than 0.", invalid_date:"Check the dates.",
         expiry_required:"Food and medicines need an expiry date.", invalid_barcode:"Barcode must have 6 to 14 digits.",
         invalid_location:"Choose a location.", insufficient:"Not enough quantity. Available: {n}.",
-        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"You do not have permission to do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", item_unit_required:"Choose the unit for the content of each unit.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used.", location_exists:"A location with that name already exists.", location_in_use:"There are products in that location. Move them before deleting it.", invalid_location_name:"Enter a name (up to 40 characters).", barcode_in_use:"That barcode already belongs to another product.", email_not_verified:"You must confirm your email before signing in. Check your inbox and spam folder.", invalid_token:"The link is invalid or has expired." }
+        invalid_invite:"Invalid or expired invitation.", home_full:"The home already has 3 people.", forbidden:"You do not have permission to do this.", invalid_person:"Invalid person.", invalid_pack:"Check the package and its content.", invalid_items:"Add at least one ingredient.", item_unit_required:"Choose the unit for the content of each unit.", in_use:"Cannot delete: it is in use.", invalid_photo:"That image could not be used.", location_exists:"A location with that name already exists.", location_in_use:"There are products in that location. Move them before deleting it.", invalid_location_name:"Enter a name (up to 40 characters).", barcode_in_use:"That barcode already belongs to another product.", email_not_verified:"You must confirm your email before signing in. Check your inbox and spam folder.", invalid_token:"The link is invalid or has expired." }
   }
 };
 const SOON_DAYS = 30;
@@ -252,6 +254,7 @@ let tab = "inv", filter = "all", inv = [], locs = [], prods = [], act = null, ac
 let form = { name:"", category:"food", unit:"unit", quantity:"1", location_id:"", purchase_date:today(), expiry_date:"", min_stock:"0", barcode:"", pack_label:"", pack_size:"", photo:"", photo_url:"", photo_pid:"", new_location:"", item_amount:"", item_unit:"", notes:"", owner_id:"" };
 let editId = "", notice = "", errCode = "", resetToken = "";
 let photoPid = "", photoVer = {};
+let cook = freshCook(), cookMsg = "", ckQ = "";
 let useMsg = "", useErr = "", useCode = "", usQ = "", qd = null, scanMode = "add", facing = "environment";
 const app = document.getElementById("app"), nav = document.getElementById("nav");
 
@@ -315,7 +318,7 @@ const LAND = {
           ["Todo el hogar al d\u00eda", "Hasta 3 personas comparten el mismo inventario, y cada producto tiene su due\u00f1o."] ],
     what_t:"Qu\u00e9 puedes guardar", cats:["Alimentos", "Limpieza", "Insumos", "Remedios"], what_n:"Hoy est\u00e1 pensada para el hogar. Oficina y taller llegar\u00e1n despu\u00e9s.",
     soon_t:"Pr\u00f3ximamente",
-    soon:["Modo cocina: eliges los ingredientes, se descuentan solos y guardas lo cocinado en el refrigerador.", "Informes de consumo, compras y desperdicio."],
+    soon:["Informes de consumo, compras y desperdicio."],
     priv_t:"Tu informaci\u00f3n, protegida",
     priv:["Tus datos viven en la nube, no en tu celular.", "Entras con verificaci\u00f3n de seguridad y, tras 3 intentos fallidos, el acceso se bloquea 15 minutos.", "Solo las personas de tu hogar ven su inventario."],
     inst_t:"Inst\u00e1lala como una app", inst:"En el men\u00fa de tu navegador elige Instalar app y aparecer\u00e1 en tu pantalla de inicio, sin pasar por ninguna tienda.",
@@ -343,7 +346,7 @@ const LAND = {
           ["The whole home up to date", "Up to 3 people share the same inventory, and each product has an owner."] ],
     what_t:"What you can store", cats:["Food", "Cleaning", "Supplies", "Medicines"], what_n:"For now it is designed for the home. Office and workshop will come later.",
     soon_t:"Coming soon",
-    soon:["Cooking mode: you pick the ingredients, they are deducted automatically and you store the meal in the refrigerator.", "Reports on consumption, purchases and waste."],
+    soon:["Reports on consumption, purchases and waste."],
     priv_t:"Your information, protected",
     priv:["Your data lives in the cloud, not on your phone.", "You sign in with a security check and, after 3 failed attempts, access is locked for 15 minutes.", "Only the people in your home can see its inventory."],
     inst_t:"Install it as an app", inst:"In your browser menu choose Install app and it will appear on your home screen, without going through any store.",
@@ -480,7 +483,7 @@ function addView() {
     '<div class="f"><label class="lbl" for="f_quantity">' + t.f_qty + '</label><input id="f_quantity" data-f="quantity" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.quantity) + '"></div>' +
     '<div class="f"><label class="lbl" for="f_pack_label">' + t.f_pack + '</label><select id="f_pack_label" data-f="pack_label"><option value="">' + t.f_pack_none + "</option>" + opts(["bag", "wrap", "box", "pack", "bottle", "jar", "can", "tube"], form.pack_label, (v) => t.pack[v][0]) + "</select></div>" +
     '<div class="f"><label class="lbl" for="f_pack_size">' + t.f_content + '</label><input id="f_pack_size" data-f="pack_size" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.pack_size) + '"></div>' +
-    '<div class="f"><label class="lbl" for="f_unit">' + t.f_unit + '</label><select id="f_unit" data-f="unit">' + opts(["unit", "kg", "g", "l", "ml", "dose", "sachet", "tablet"], form.unit, (v) => t.unit[v]) + "</select></div>" +
+    '<div class="f"><label class="lbl" for="f_unit">' + t.f_unit + '</label><select id="f_unit" data-f="unit">' + opts(["unit", "portion", "kg", "g", "l", "ml", "dose", "sachet", "tablet"], form.unit, (v) => t.unit[v]) + "</select></div>" +
     (isCount(form.unit) ? '<div class="f"><label class="lbl" for="f_item_amount">' + t.f_item + '</label><input id="f_item_amount" data-f="item_amount" type="number" inputmode="decimal" min="0" step="any" value="' + esc(form.item_amount) + '"></div>' +
       '<div class="f"><label class="lbl" for="f_item_unit">&nbsp;</label><select id="f_item_unit" data-f="item_unit"><option value="">\u2014</option>' + opts(["g", "kg", "ml", "l", "unit"], form.item_unit, (v) => t.unit[v]) + "</select></div>" : "") +
     '<div class="f"><label class="lbl" for="f_purchase_date">' + t.f_buy + '</label><input id="f_purchase_date" data-f="purchase_date" type="date" value="' + esc(form.purchase_date) + '"></div>' +
@@ -535,30 +538,31 @@ function renderQd() {
   el.innerHTML = '<div class="qd-in"><div class="row" style="gap:14px;align-items:center">' + (r.has_photo ? '<img class="pv" alt="" src="/api/products/' + r.product_id + '/photo?v=' + (photoVer[r.product_id] || 0) + '">' : "") +
     '<div><div class="qd-name">' + esc(r.name) + '</div><div class="t" style="margin:0">' + t.qd_avail + ": " + esc(fmtQ(total) + " " + u) + "</div></div></div>" +
     '<div class="t" style="margin:10px 0 0">' + t.fifo_use + " " + esc(st.text) + "</div>" +
-    '<div class="qd-q">' + t.qd_q + '</div><div class="qgrid">' + qdOptions(r, total).map((o) => '<button class="qb' + (qd.sel !== null && Math.abs(qd.sel - o.q) < 1e-9 ? " on" : "") + '" data-a="qd_pick" data-q="' + o.q + '">' + esc(o.label) + "</button>").join("") + "</div>" +
+    '<div class="qd-q">' + (qd.mode === "cook" ? t.qd_qc : t.qd_q) + '</div><div class="qgrid">' + qdOptions(r, total).map((o) => '<button class="qb' + (qd.sel !== null && Math.abs(qd.sel - o.q) < 1e-9 ? " on" : "") + '" data-a="qd_pick" data-q="' + o.q + '">' + esc(o.label) + "</button>").join("") + "</div>" +
     '<div class="qd-q">' + t.qd_other + " (" + esc(u) + ')</div><input id="qd_c" type="number" inputmode="decimal" min="0" step="any">' +
     (qd.err ? '<p class="err" role="alert" style="margin-top:12px">' + esc(qd.err) + "</p>" : "") +
     '<button class="btn p big" style="margin-top:18px" data-a="qd_ok">' + t.confirm + '</button><button class="btn s big" style="margin-top:10px" data-a="qd_cancel">' + t.cancel + "</button></div>";
   el.hidden = false;
   document.getElementById("qd_c").oninput = (e) => { qd.sel = Number(String(e.target.value).replace(",", ".")) || null; el.querySelectorAll(".qb.on").forEach((x) => x.classList.remove("on")); };
 }
+function flash(m, code) { if (tab === "cook") cook.err = m; else { useErr = m; useCode = code || ""; } }
 function openQd(pid) {
   const rows = inv.filter((x) => x.product_id === pid);
-  if (!rows.length) { useErr = T[lang].use_nostock; useCode = ""; render(); return; }
-  qd = { pid, rows, sel: null, err: "", busy: false }; renderQd();
+  if (!rows.length) { flash(T[lang].use_nostock, ""); render(); return; }
+  qd = { pid, rows, sel: null, err: "", busy: false, mode: tab === "cook" ? "cook" : "use" }; renderQd();
 }
 function closeQd() { const el = document.getElementById("qd"); el.hidden = true; el.innerHTML = ""; qd = null; }
 async function onUseCode(code) {
-  useMsg = ""; useErr = ""; useCode = "";
+  useMsg = ""; useErr = ""; useCode = ""; cook.err = "";
   try {
     const r = await get("/api/lookup?code=" + code + "&own=1");
     if (r.ok && r.d.found === "home") { openQd(r.d.product.id); return; }
-    useErr = T[lang].use_none; useCode = code;
-  } catch (e) { useErr = msg("network"); }
+    flash(T[lang].use_none, code);
+  } catch (e) { flash(msg("network"), ""); }
   render();
 }
-function usList() {
-  const t = T[lang], q = usQ.trim().toLowerCase(), seen = {};
+function usList(q0) {
+  const t = T[lang], q = (q0 === undefined ? usQ : q0).trim().toLowerCase(), seen = {};
   const h = inv.filter((r) => { if (seen[r.product_id]) return false; seen[r.product_id] = 1; return !q || r.name.toLowerCase().includes(q); })
     .map((r) => '<button class="qrow" data-a="qd_open" data-p="' + r.product_id + '"><span>' + esc(r.name) + '</span><span class="t" style="margin:0">' + esc(fmtQ(r.total) + " " + qdUnit(r.unit)) + "</span></button>").join("");
   return h || '<p class="t">' + t.empty + "</p>";
@@ -569,9 +573,21 @@ function useView() {
     (useErr ? '<p class="err" role="alert">' + esc(useErr) + "</p>" + (useCode ? '<button class="btn s" style="margin-bottom:12px" data-a="use_enter">' + t.use_enter + "</button>" : "") : "") +
     '<button class="btn p big" data-a="use_scan">' + t.use_scan + '</button><div class="f" style="margin-top:18px"><label class="lbl" for="us_q">' + t.use_search + '</label><input id="us_q" autocomplete="off" value="' + esc(usQ) + '"></div><div id="us_list">' + usList() + "</div>";
 }
+function plusDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function freshCook() { return { name:"", portions:"2", expiry_date:plusDays(3), owner_id:"", items:[], err:"", busy:false, pick:false }; }
 function cookView() {
-  const t = T[lang];
-  return '<h1>' + t.nav.cook + '</h1><div class="card"><div class="val">' + t.cook_t + '</div><p class="t" style="margin:8px 0 0">' + t.cook_d + "</p></div>";
+  const t = T[lang], c = cook, mem = hm ? hm.members : [];
+  const items = c.items.map((x, i) => '<div class="item"><div class="info"><div class="val">' + esc(x.name) + '</div><div class="x">' + esc(fmtQ(x.q) + " " + qdUnit(x.unit)) + '</div><label class="t" style="display:flex;gap:8px;align-items:center;margin:8px 0 0"><input type="checkbox" style="width:22px;min-height:22px;flex:none" data-ckm="' + i + '"' + (x.move ? " checked" : "") + ">" + t.ck_move + '</label></div><div class="side"><button class="mini" style="color:var(--red);border-color:var(--red)" data-a="ck_del" data-i="' + i + '">' + t.ck_del + "</button></div></div>").join("");
+  return '<h1>' + t.nav.cook + "</h1>" + (cookMsg ? '<p class="ok"><span class="dot"></span>' + esc(cookMsg) + "</p>" : "") +
+    '<div class="f"><label class="lbl" for="ck_name">' + t.ck_name + '</label><input id="ck_name" data-ck="name" maxlength="80" autocomplete="off" value="' + esc(c.name) + '"></div>' +
+    '<div class="grid"><div class="f"><label class="lbl" for="ck_portions">' + t.ck_portions + '</label><input id="ck_portions" data-ck="portions" type="number" inputmode="decimal" min="0" step="any" value="' + esc(c.portions) + '"></div>' +
+    '<div class="f"><label class="lbl" for="ck_exp">' + t.ck_exp + '</label><input id="ck_exp" data-ck="expiry_date" type="date" value="' + esc(c.expiry_date) + '"></div>' +
+    (mem.length > 1 ? '<div class="f full"><label class="lbl" for="ck_owner">' + t.f_owner + '</label><select id="ck_owner" data-ck="owner_id">' + opts(mem.map((m) => m.id), c.owner_id || hm.me, (id) => mem.find((m) => m.id === id).email) + "</select></div>" : "") + "</div>" +
+    '<div class="lbl" style="margin:4px 0 0">' + t.ck_ings + "</div>" + (items || '<p class="t" style="margin:6px 0 12px">' + t.ck_empty + "</p>") +
+    '<div class="two"><button class="btn s" data-a="ck_scan">' + t.ck_scan + '</button><button class="btn s" data-a="ck_pick">' + t.ck_pick + "</button></div>" +
+    (c.pick ? '<div class="f" style="margin-top:12px"><input id="ck_q" autocomplete="off" placeholder="' + esc(t.use_search) + '" value="' + esc(ckQ) + '"></div><div id="ck_list">' + usList(ckQ) + "</div>" : "") +
+    (c.err ? '<p class="err" role="alert" style="margin-top:12px">' + esc(c.err) + "</p>" : "") +
+    '<button class="btn p big" style="margin-top:18px"' + (c.busy ? " disabled" : "") + ' data-a="ck_save">' + (c.busy ? t.wait : t.ck_save) + "</button>";
 }
 function render() {
   const t = T[lang];
@@ -643,7 +659,7 @@ function stopScan() { stopCam(); document.getElementById("scan").hidden = true; 
 async function onCode(code) {
   if (found) return;
   found = true; stopScan();
-  if (scanMode === "use") return onUseCode(code);
+  if (scanMode === "use" || scanMode === "cook") return onUseCode(code);
   form.barcode = code; lookupMsg = "";
   const t = T[lang];
   try {
@@ -743,7 +759,7 @@ async function download(path, name) {
   } catch (e) { alert(msg("network")); }
 }
 const actions = {
-  tab: (d) => { if (editId) { editId = ""; resetForm(); } tab = d.t; act = null; addMsg = ""; addErr = ""; homeErr = ""; homeMsg = ""; if (d.t === "use") { useMsg = ""; useErr = ""; useCode = ""; usQ = ""; } render(); if (d.t === "use") { scanMode = "use"; startScan(); } },
+  tab: (d) => { if (editId) { editId = ""; resetForm(); } tab = d.t; act = null; addMsg = ""; addErr = ""; homeErr = ""; homeMsg = ""; if (d.t === "use") { useMsg = ""; useErr = ""; useCode = ""; usQ = ""; } if (d.t === "cook") { cookMsg = ""; cook.err = ""; } render(); if (d.t === "use") { scanMode = "use"; startScan(); } },
   filter: (d) => { filter = d.t; act = null; render(); },
   use_open: (d) => { act = { kind:"use", bid:d.b }; actErr = ""; render(); },
   disc_open: (d) => { act = { kind:"disc", bid:d.b }; render(); },
@@ -818,6 +834,13 @@ const actions = {
     if (!qd || qd.busy) return;
     const t = T[lang];
     if (!(qd.sel > 0)) { qd.err = t.e.invalid_quantity; renderQd(); return; }
+    if (qd.mode === "cook") {
+      const pid0 = qd.pid, total0 = qd.rows.reduce((a, x) => a + x.quantity, 0), used = cook.items.filter((x) => x.pid === pid0).reduce((a, x) => a + x.q, 0);
+      if (qd.sel + used > total0 + 1e-9) { qd.err = msg("insufficient", { available: total0 - used }); renderQd(); return; }
+      const ex = cook.items.find((x) => x.pid === pid0);
+      if (ex) ex.q = Math.round((ex.q + qd.sel) * 1e6) / 1e6; else cook.items.push({ pid: pid0, name: qd.rows[0].name, unit: qd.rows[0].unit, q: qd.sel, move: false });
+      cook.pick = false; ckQ = ""; closeQd(); render(); return;
+    }
     qd.busy = true;
     const pid = qd.pid, name = qd.rows[0].name, u = qdUnit(qd.rows[0].unit), q = qd.sel;
     let r; try { r = await post("/api/products/" + pid + "/use", { quantity: q }); } catch (e) { r = { ok:false, d:{ error:"network" } }; }
@@ -826,6 +849,20 @@ const actions = {
     const left = inv.filter((x) => x.product_id === pid).reduce((a, x) => a + x.quantity, 0);
     useMsg = t.used(name, fmtQ(q) + " " + u, fmtQ(left) + " " + u); useErr = ""; useCode = "";
     closeQd(); render();
+  },
+  ck_scan: () => { scanMode = "cook"; startScan(); },
+  ck_pick: () => { cook.pick = !cook.pick; render(); },
+  ck_del: (d) => { cook.items.splice(Number(d.i), 1); render(); },
+  ck_save: async () => {
+    if (cook.busy) return;
+    const t = T[lang], c = cook;
+    c.err = "";
+    if (!c.name.trim()) c.err = t.e.invalid_name; else if (!c.items.length) c.err = t.e.invalid_items; else if (!(Number(c.portions) > 0)) c.err = t.e.invalid_quantity; else if (!c.expiry_date) c.err = t.e.expiry_required;
+    if (c.err) { render(); return; }
+    c.busy = true; render();
+    let r; try { r = await post("/api/meals", { name: c.name.trim(), portions: Number(c.portions), expiry_date: c.expiry_date, purchase_date: today(), owner_id: c.owner_id, items: c.items.map((x) => ({ product_id: x.pid, quantity: x.q, move: x.move })) }); } catch (e) { r = { ok:false, d:{ error:"network" } }; }
+    if (!r.ok) { c.busy = false; c.err = msg(r.d.error, r.d) + (r.d.product ? " (" + r.d.product + ")" : ""); render(); return; }
+    const nm = c.name.trim(); cook = freshCook(); await loadData(); cookMsg = t.ck_ok(nm); render(); window.scrollTo(0, 0);
   },
   use_enter: () => { const c = useCode; useErr = ""; useCode = ""; tab = "add"; scanMode = "add"; found = false; render(); onCode(c); },
   invite: async () => {
@@ -852,6 +889,9 @@ document.addEventListener("click", (e) => {
   if (b && actions[b.dataset.a]) actions[b.dataset.a](b.dataset);
 });
 document.addEventListener("input", (e) => {
+  const ck = e.target.dataset && e.target.dataset.ck;
+  if (ck) { cook[ck] = e.target.value; return; }
+  if (e.target.id === "ck_q") { ckQ = e.target.value; document.getElementById("ck_list").innerHTML = usList(ckQ); return; }
   if (e.target.id === "us_q") { usQ = e.target.value; document.getElementById("us_list").innerHTML = usList(); return; }
   const f = e.target.dataset && e.target.dataset.f;
   if (!f) return;
@@ -859,6 +899,7 @@ document.addEventListener("input", (e) => {
   if (f === "quantity" || f === "pack_size") { const el = document.getElementById("total_hint"); if (el) el.textContent = totalHint(); }
 });
 document.addEventListener("change", (e) => {
+  if (e.target.dataset && e.target.dataset.ckm !== undefined) { cook.items[Number(e.target.dataset.ckm)].move = e.target.checked; return; }
   const f = e.target.dataset && e.target.dataset.f;
   if (!f) return;
   form[f] = e.target.value;
