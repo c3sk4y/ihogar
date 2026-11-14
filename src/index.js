@@ -173,7 +173,7 @@ async function login(req, env, ip) {
 }
 
 const CATS = ["food", "cleaning", "supplies", "medicine"];
-const UNITS = ["unit", "kg", "g", "l", "ml", "dose", "sachet", "tablet"];
+const UNITS = ["unit", "kg", "g", "l", "ml", "dose", "sachet", "tablet", "portion"];
 const validPhoto = (p) => typeof p === "string" && p.length <= 160000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(p);
 async function fetchPhoto(url) {
   if (!/^https:\/\/images\.openfoodfacts\.org\/[\w\/.\-]+$/.test(url)) return null;
@@ -295,6 +295,55 @@ async function giftBatch(req, env, u, bid) {
   return json({ ok: true });
 }
 const homePerson = (env, u, id) => env.DB.prepare("SELECT id FROM people WHERE id = ? AND home_id = ?").bind(String(id), u.home_id).first();
+// Modo cocina: descuenta ingredientes con FIFO y guarda la comida en el refrigerador (D-014, D-035).
+async function createMeal(req, env, u) {
+  const b = await readJson(req, 20000);
+  if (!b) return json({ error: "bad_request" }, 400);
+  const name = typeof b.name === "string" ? b.name.trim() : "";
+  if (name.length < 1 || name.length > 80) return json({ error: "invalid_name" }, 400);
+  const portions = Number(b.portions);
+  if (!(portions > 0 && portions <= 1000)) return json({ error: "invalid_quantity" }, 400);
+  if (!isDate(b.expiry_date)) return json({ error: b.expiry_date ? "invalid_date" : "expiry_required" }, 400);
+  const buy = isDate(b.purchase_date) ? b.purchase_date : new Date().toISOString().slice(0, 10);
+  if (!Array.isArray(b.items) || !b.items.length || b.items.length > 15) return json({ error: "invalid_items" }, 400);
+  let ownerId = u.id;
+  if (b.owner_id && b.owner_id !== u.id) { const o = await homePerson(env, u, b.owner_id); if (!o) return json({ error: "invalid_person" }, 400); ownerId = o.id; }
+  const want = new Map();
+  for (const it of b.items) {
+    const q = Number(it && it.quantity);
+    if (!it || typeof it.product_id !== "string" || !(q > 0 && q <= 100000)) return json({ error: "invalid_quantity" }, 400);
+    const w = want.get(it.product_id) || { q: 0, move: false };
+    w.q = Math.round((w.q + q) * 1e6) / 1e6; w.move = w.move || it.move === true;
+    want.set(it.product_id, w);
+  }
+  const fr = await env.DB.prepare("SELECT id FROM locations WHERE home_id = ? AND lower(name) = 'fridge'").bind(u.home_id).first();
+  const fridge = fr ? fr.id : crypto.randomUUID();
+  const prod = await env.DB.prepare("SELECT id FROM products WHERE home_id = ? AND barcode IS NULL AND lower(name) = lower(?) AND unit = 'portion'").bind(u.home_id, name).first();
+  const pid = prod ? prod.id : crypto.randomUUID(), bid = crypto.randomUUID(), mealId = crypto.randomUUID();
+  const stmts = [];
+  if (!fr) stmts.push(env.DB.prepare("INSERT INTO locations (id, home_id, name) VALUES (?, ?, 'fridge')").bind(fridge, u.home_id));
+  if (!prod) stmts.push(env.DB.prepare("INSERT INTO products (id, home_id, name, category, unit, min_stock) VALUES (?, ?, ?, 'food', 'portion', 0)").bind(pid, u.home_id, name));
+  stmts.push(env.DB.prepare("INSERT INTO batches (id, product_id, location_id, owner_id, quantity, initial_quantity, purchase_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(bid, pid, fridge, ownerId, portions, portions, buy, b.expiry_date));
+  stmts.push(env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id, note) VALUES (?, ?, 'in', ?, ?, 'cook')").bind(crypto.randomUUID(), bid, portions, u.id));
+  stmts.push(env.DB.prepare("INSERT INTO meals (id, home_id, name, batch_id, cooked_by) VALUES (?, ?, ?, ?, ?)").bind(mealId, u.home_id, name, bid, u.id));
+  for (const [ppid, w] of want) {
+    const rows = (await env.DB.prepare("SELECT b.id, b.quantity, b.location_id, p.name FROM batches b JOIN products p ON p.id = b.product_id WHERE p.id = ? AND p.home_id = ? AND b.status = 'active' " + FIFO).bind(ppid, u.home_id).all()).results;
+    const total = rows.reduce((a, r) => a + r.quantity, 0);
+    if (w.q > total + 1e-9) return json({ error: "insufficient", available: total, product: rows.length ? rows[0].name : "" }, 409);
+    let left = w.q;
+    for (const r of rows) {
+      if (left <= 1e-9) break;
+      const take = Math.min(r.quantity, left);
+      const rem = Math.round((r.quantity - take) * 1e6) / 1e6;
+      stmts.push(env.DB.prepare("UPDATE batches SET quantity = ?, status = ?, location_id = ? WHERE id = ?").bind(rem, rem <= 0 ? "empty" : "active", w.move && rem > 0 ? fridge : r.location_id, r.id));
+      stmts.push(env.DB.prepare("INSERT INTO movements (id, batch_id, type, quantity, person_id, note) VALUES (?, ?, 'cook', ?, ?, ?)").bind(crypto.randomUUID(), r.id, take, u.id, name.slice(0, 60)));
+      stmts.push(env.DB.prepare("INSERT INTO meal_items (meal_id, batch_id, quantity) VALUES (?, ?, ?)").bind(mealId, r.id, take));
+      left = Math.round((left - take) * 1e6) / 1e6;
+    }
+  }
+  await env.DB.batch(stmts);
+  return json({ ok: true, id: bid }, 201);
+}
 async function deleteBatch(env, u, bid) {
   const r = await env.DB.prepare("SELECT b.id, b.owner_id, b.product_id FROM batches b JOIN products p ON p.id = b.product_id WHERE b.id = ? AND p.home_id = ?").bind(bid, u.home_id).first();
   if (!r) return json({ error: "not_found" }, 404);
@@ -640,7 +689,7 @@ export default {
         const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM people WHERE home_id = ?").bind(u.home_id).first();
         return json({ email: u.email, role: u.role, home: { name: u.home_name, members: c.n, max: MAX_HOME } });
       }
-      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager", "/api/backup", "/api/export"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit|gift)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
+      if (["/api/locations", "/api/products", "/api/inventory", "/api/home", "/api/lookup", "/api/invitations", "/api/home/manager", "/api/backup", "/api/export", "/api/meals"].includes(p) || /^\/api\/(batches|batches\/[0-9a-f-]{36}\/(discard|delete|edit|gift)|products\/[0-9a-f-]{36}\/(use|photo)|invitations\/[0-9a-f-]{36}\/cancel|locations\/[0-9a-f-]{36}\/(rename|delete))$/.test(p)) {
         const u = await currentUser(request, env);
         if (!u) return json({ error: "unauthorized" }, 401);
         if (request.method === "GET") {
@@ -657,6 +706,7 @@ export default {
           const origin = request.headers.get("origin");
           if (origin && new URL(origin).host !== url.host) return json({ error: "forbidden" }, 403);
           if (p === "/api/batches") return await addBatch(request, env, u);
+          if (p === "/api/meals") return await createMeal(request, env, u);
           if (p === "/api/invitations") return await createInvite(request, env, u);
           if (p === "/api/locations") return await createLocation(request, env, u);
           if (p === "/api/home/manager") return await setManager(request, env, u);
