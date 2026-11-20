@@ -164,6 +164,7 @@ const T = {
     fullname:"Nombre completo", name_t:"Completa tu nombre", name_d:"Lo usaremos para mostrar qui\u00e9n es el due\u00f1o de cada producto, en lugar de tu correo.", save_name:"Guardar",
     rep_btn:"Informes", rep_title:"Informes", rep_back:"Volver", rep_days:(n)=>"\u00daltimos "+n+" d\u00edas", rep_person:"Persona", rep_all:"Todos", rep_buy:"Compras", rep_use:"Consumo", rep_waste:"Desperdicio", rep_records:"registros", rep_top_use:"M\u00e1s consumidos", rep_top_waste:"M\u00e1s desperdiciados", rep_pct:(p)=>p+" % de los registros de consumo y descarte son desperdicio.", rep_empty:"No hay movimientos en este per\u00edodo.", rep_note:"Los totales cuentan registros; las cantidades se muestran solo por producto. Las compras no incluyen comidas cocinadas.",
     ck_name:"Nombre de la comida", ck_portions:"Porciones", ck_exp:"Caduca el", ck_ings:"Ingredientes", ck_scan:"Escanear ingrediente", ck_pick:"Elegir por nombre", ck_move:"Guardar el resto en el refrigerador", ck_del:"Quitar", ck_save:"Guardar comida", ck_empty:"Agrega al menos un ingrediente.", ck_ok:(n)=>"Guardado: "+n+" qued\u00f3 en el refrigerador.", qd_qc:"\u00bfCu\u00e1nto usar\u00e1s?",
+    v_btn:"Hablar", v_stop:"Detener voz", v_ask:(n)=>"¿Cuánto vas a consumir de "+n+"?", v_askc:(n)=>"¿Cuánto usarás de "+n+"?", v_listen:"Escuchando...", v_heard:"Escuché: ", v_again:"No te entendí. Dime la cantidad, por ejemplo doscientos cincuenta gramos.", v_unit:"Esa unidad no corresponde a este producto.", v_toomuch:(a)=>"Solo hay "+a+" disponibles.", v_confirm:(q)=>"Entendí "+q+". ¿Confirmas?", v_retry:"Está bien. Dime la cantidad otra vez.", v_denied:"No hay permiso para usar el micrófono.", v_nomic:"No se encontró un micrófono.", v_none:"No escuché nada. Toca Hablar para intentarlo de nuevo.", sp:{ unit:"unidades", portion:"porciones", kg:"kilos", g:"gramos", l:"litros", ml:"mililitros", dose:"dosis", sachet:"bolsitas", tablet:"comprimidos" },
     used:(n,q,l)=>"Descontado "+q+" de "+n+". Quedan "+l+".", cook_t:"Pr\u00f3ximamente", cook_d:"Elegir\u00e1s los ingredientes, se descontar\u00e1n con FIFO y la comida quedar\u00e1 guardada en el refrigerador.", gift:"Regalar", gift_to:"Regalar a", f_owner:"Due\u00f1o",
     bk_t:"Respaldo de datos", bk_csv:"Descargar inventario (CSV)", bk_json:"Descargar respaldo completo (JSON)", bk_note:"Descarga una copia de vez en cuando y gu\u00e1rdala fuera del celular. El respaldo JSON es solo para el gestor y no incluye contrase\u00f1as.",
     photo_failed:"No se pudo traer la foto del producto; puedes tomarla t\u00fa.",
@@ -213,6 +214,7 @@ const T = {
     fullname:"Full name", name_t:"Add your name", name_d:"We will use it to show who owns each product, instead of your email.", save_name:"Save",
     rep_btn:"Reports", rep_title:"Reports", rep_back:"Back", rep_days:(n)=>"Last "+n+" days", rep_person:"Person", rep_all:"Everyone", rep_buy:"Purchases", rep_use:"Consumption", rep_waste:"Waste", rep_records:"records", rep_top_use:"Most used", rep_top_waste:"Most wasted", rep_pct:(p)=>p+" % of consumption and discard records are waste.", rep_empty:"There are no movements in this period.", rep_note:"Totals count records; quantities are shown per product only. Purchases do not include cooked meals.",
     ck_name:"Meal name", ck_portions:"Portions", ck_exp:"Expires on", ck_ings:"Ingredients", ck_scan:"Scan ingredient", ck_pick:"Pick by name", ck_move:"Keep the rest in the refrigerator", ck_del:"Remove", ck_save:"Save meal", ck_empty:"Add at least one ingredient.", ck_ok:(n)=>"Saved: "+n+" is now in the refrigerator.", qd_qc:"How much will you use?",
+    v_btn:"Speak", v_stop:"Stop voice", v_ask:(n)=>"How much "+n+" will you use?", v_askc:(n)=>"How much "+n+" will you use?", v_listen:"Listening...", v_heard:"Heard: ", v_again:"I did not understand. Tell me the amount, for example two hundred fifty grams.", v_unit:"That unit does not match this product.", v_toomuch:(a)=>"There is only "+a+" available.", v_confirm:(q)=>"I understood "+q+". Do you confirm?", v_retry:"Okay. Tell me the amount again.", v_denied:"There is no permission to use the microphone.", v_nomic:"No microphone was found.", v_none:"I heard nothing. Tap Speak to try again.", sp:{ unit:"units", portion:"portions", kg:"kilograms", g:"grams", l:"liters", ml:"milliliters", dose:"doses", sachet:"sachets", tablet:"tablets" },
     used:(n,q,l)=>"Deducted "+q+" of "+n+". "+l+" left.", cook_t:"Coming soon", cook_d:"You will pick the ingredients, they will be deducted with FIFO and the meal will be stored in the refrigerator.", gift:"Gift", gift_to:"Gift to", f_owner:"Owner",
     bk_t:"Data backup", bk_csv:"Download inventory (CSV)", bk_json:"Download full backup (JSON)", bk_note:"Download a copy now and then and keep it off the phone. The JSON backup is manager-only and has no passwords.",
     photo_failed:"The product photo could not be fetched; you can take one yourself.",
@@ -533,6 +535,102 @@ function homeView() {
   html += '<div class="t" style="margin:20px 0 6px;font-weight:500">' + t.bk_t + '</div><p class="t" style="margin:0 0 10px">' + t.bk_note + '</p><button class="btn s" style="margin-bottom:10px" data-a="dl_csv">' + t.bk_csv + "</button>" + (mine ? '<button class="btn s" data-a="dl_json">' + t.bk_json + "</button>" : "");
   return html + '<div style="height:24px"></div><button class="btn s" data-a="out">' + t.out + "</button>";
 }
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const canVoice = () => !!SR && "speechSynthesis" in window;
+const V = { on: false, rec: null, err: "" };
+const NUM_ES = { cero:0, un:1, uno:1, una:1, dos:2, tres:3, cuatro:4, cinco:5, seis:6, siete:7, ocho:8, nueve:9, diez:10, once:11, doce:12, trece:13, catorce:14, quince:15, dieciseis:16, diecisiete:17, dieciocho:18, diecinueve:19, veinte:20, veintiun:21, veintiuno:21, veintidos:22, veintitres:23, veinticuatro:24, veinticinco:25, veintiseis:26, veintisiete:27, veintiocho:28, veintinueve:29, treinta:30, cuarenta:40, cincuenta:50, sesenta:60, setenta:70, ochenta:80, noventa:90, cien:100, ciento:100, doscientos:200, doscientas:200, trescientos:300, trescientas:300, cuatrocientos:400, cuatrocientas:400, quinientos:500, quinientas:500, seiscientos:600, seiscientas:600, setecientos:700, setecientas:700, ochocientos:800, ochocientas:800, novecientos:900, novecientas:900 };
+const NUM_EN = { zero:0, a:1, an:1, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19, twenty:20, thirty:30, forty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90 };
+const UNIT_W = { gramo:"g", gramos:"g", gr:"g", grs:"g", g:"g", gram:"g", grams:"g", kilo:"kg", kilos:"kg", kilogramo:"kg", kilogramos:"kg", kg:"kg", kgs:"kg", kilogram:"kg", kilograms:"kg", litro:"l", litros:"l", lt:"l", lts:"l", l:"l", liter:"l", liters:"l", litre:"l", litres:"l", mililitro:"ml", mililitros:"ml", ml:"ml", cc:"ml", milliliter:"ml", milliliters:"ml", unidad:"count", unidades:"count", unid:"count", unit:"count", units:"count", porcion:"count", porciones:"count", portion:"count", portions:"count", bolsita:"count", bolsitas:"count", sachet:"count", sachets:"count", comprimido:"count", comprimidos:"count", tablet:"count", tablets:"count", dosis:"count", dose:"count", doses:"count", pieza:"count", piezas:"count" };
+// Convierte lo dicho (texto del navegador) en una cantidad en la unidad del producto (D-036).
+function toProductUnit(q, su, pu) {
+  if (!su) return q;
+  if (su === "count") return ["unit", "portion", "dose", "sachet", "tablet"].includes(pu) ? q : null;
+  const fam = { g:"m", kg:"m", ml:"v", l:"v" }, f = { g:1, kg:1000, ml:1, l:1000 };
+  if (!fam[pu] || fam[su] !== fam[pu]) return null;
+  return Math.round((q * f[su] / f[pu]) * 1e6) / 1e6;
+}
+function parseSpoken(raw, pu) {
+  const es = lang === "es";
+  const s = String(raw).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/(\d+)\s*\/\s*(\d+)/g, (m, a, b) => String(Number(a) / Number(b))).replace(/(\d),(\d)/g, "$1.$2")
+    .replace(/(\d)([a-z])/g, "$1 $2").replace(/([a-z])(\d)/g, "$1 $2").replace(/[^a-z0-9.\s]/g, " ").replace(/\s+/g, " ").trim();
+  const tk = s.split(" ").map((w) => w.replace(/^\.+|\.+$/g, "")).filter(Boolean);
+  const ALL = es ? ["todo", "toda", "todos", "entero", "entera", "completo", "completa"] : ["all", "everything", "whole", "entire"];
+  const YES = es ? ["si", "dale", "ok", "confirmo", "confirmar", "listo", "correcto", "claro"] : ["yes", "yeah", "yep", "ok", "okay", "confirm", "correct", "sure"];
+  const NO = es ? ["no", "cancela", "cancelar", "otra"] : ["no", "nope", "cancel"];
+  if (tk.some((w) => ALL.includes(w))) return { all: true };
+  const nums = es ? NUM_ES : NUM_EN;
+  let cur = 0, frac = 0, found = false, su = null;
+  tk.forEach((w, i) => {
+    if (/^\d+(\.\d+)?$/.test(w)) { cur += parseFloat(w); found = true; }
+    else if (!es && (w === "a" || w === "an") && (["half", "quarter", "quarters"].includes(tk[i + 1]) || ["half", "quarter", "quarters", "of"].includes(tk[i - 1]))) return;
+    else if (nums[w] !== undefined) { cur += nums[w]; found = true; }
+    else if (w === "mil" || w === "thousand") { cur = (cur || 1) * 1000; found = true; }
+    else if (w === "hundred") { cur = (cur || 1) * 100; found = true; }
+    else if (w === "medio" || w === "media" || w === "half") { frac += 0.5; found = true; }
+    else if (w === "cuarto" || w === "cuartos" || w === "quarter" || w === "quarters") { frac += (cur || 1) / 4; cur = 0; found = true; }
+    else if (UNIT_W[w] && !su) su = UNIT_W[w];
+  });
+  const q = cur + frac;
+  if (found && q > 0) { const v = toProductUnit(q, su, pu); return v === null ? { err: "unit" } : { q: v }; }
+  if (tk.some((w) => NO.includes(w))) return { no: true };
+  if (tk.some((w) => YES.includes(w))) return { yes: true };
+  return { none: true };
+}
+function vSpeak(text) {
+  return new Promise((ok) => {
+    if (!("speechSynthesis" in window)) return ok();
+    const u = new SpeechSynthesisUtterance(text); u.lang = lang === "es" ? "es-CL" : "en-US";
+    const vs = speechSynthesis.getVoices().filter((x) => x.lang.toLowerCase().startsWith(lang));
+    if (vs.length) u.voice = vs[0];
+    u.onend = () => ok(); u.onerror = () => ok();
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  });
+}
+function vStatus(m) { if (qd) qd.vs = m; const el = document.getElementById("qd_vs"); if (el) el.textContent = m; }
+function vListen() {
+  return new Promise((ok) => {
+    const r = new SR(); V.rec = r; V.err = ""; let last = "";
+    r.lang = lang === "es" ? "es-CL" : "en-US"; r.interimResults = true; r.maxAlternatives = 1;
+    r.onresult = (e) => { last = Array.from(e.results).map((x) => x[0].transcript).join(" "); vStatus(T[lang].v_heard + last); };
+    r.onerror = (e) => { V.err = e.error; };
+    r.onend = () => ok(last);
+    try { r.start(); } catch (e) { ok(""); }
+  });
+}
+function vStop() { V.on = false; try { if (V.rec) V.rec.abort(); } catch (e) {} if ("speechSynthesis" in window) speechSynthesis.cancel(); }
+async function vRun() {
+  if (V.on || !qd) return;
+  V.on = true; const t = T[lang], r0 = qd.rows[0], name = r0.name, pu = r0.unit;
+  const total = qd.rows.reduce((a, x) => a + x.quantity, 0), sp = (t.sp[pu] || pu);
+  qd.err = ""; renderQd();
+  let step = "qty", empties = 0;
+  await vSpeak(qd.mode === "cook" ? t.v_askc(name) : t.v_ask(name));
+  while (V.on && qd) {
+    vStatus(t.v_listen);
+    const heard = await vListen();
+    if (!V.on || !qd) break;
+    if (V.err === "not-allowed" || V.err === "service-not-allowed") { qd.err = t.v_denied; break; }
+    if (V.err === "audio-capture") { qd.err = t.v_nomic; break; }
+    if (!heard.trim()) {
+      if (++empties >= 2) { vStatus(t.v_none); break; }
+      await vSpeak(t.v_again); continue;
+    }
+    empties = 0;
+    const p = parseSpoken(heard, pu);
+    if (step === "confirm" && p.yes) { V.on = false; await actions.qd_ok(); return; }
+    if (step === "confirm" && p.no) { step = "qty"; qd.sel = null; renderQd(); await vSpeak(t.v_retry); continue; }
+    if (p.err) { await vSpeak(t.v_unit); continue; }
+    const q = p.all ? total : p.q;
+    if (q > 0) {
+      if (q > total + 1e-9) { await vSpeak(t.v_toomuch(fmtQ(total) + " " + sp)); continue; }
+      qd.sel = q; qd.vs = t.v_heard + heard; renderQd(); step = "confirm";
+      await vSpeak(t.v_confirm(fmtQ(q) + " " + sp)); continue;
+    }
+    await vSpeak(t.v_again);
+  }
+  V.on = false; if (qd) renderQd();
+}
 function qdUnit(u) { return u === "l" ? "l" : (T[lang].unit[u] || u); }
 function qdOptions(r, total) {
   const t = T[lang], u = qdUnit(r.unit), out = [];
@@ -548,7 +646,7 @@ function renderQd() {
   el.innerHTML = '<div class="qd-in"><div class="row" style="gap:14px;align-items:center">' + (r.has_photo ? '<img class="pv" alt="" src="/api/products/' + r.product_id + '/photo?v=' + (photoVer[r.product_id] || 0) + '">' : "") +
     '<div><div class="qd-name">' + esc(r.name) + '</div><div class="t" style="margin:0">' + t.qd_avail + ": " + esc(fmtQ(total) + " " + u) + "</div></div></div>" +
     '<div class="t" style="margin:10px 0 0">' + t.fifo_use + " " + esc(st.text) + "</div>" +
-    '<div class="qd-q">' + (qd.mode === "cook" ? t.qd_qc : t.qd_q) + '</div><div class="qgrid">' + qdOptions(r, total).map((o) => '<button class="qb' + (qd.sel !== null && Math.abs(qd.sel - o.q) < 1e-9 ? " on" : "") + '" data-a="qd_pick" data-q="' + o.q + '">' + esc(o.label) + "</button>").join("") + "</div>" +
+    '<div class="qd-q">' + (qd.mode === "cook" ? t.qd_qc : t.qd_q) + '</div>' + (canVoice() ? '<button class="btn s big" style="margin:0 0 8px" data-a="qd_voice">' + (V.on ? t.v_stop : t.v_btn) + '</button><div id="qd_vs" class="t" style="margin:0 0 12px;min-height:20px">' + esc(qd.vs || "") + "</div>" : "") + '<div class="qgrid">' + qdOptions(r, total).map((o) => '<button class="qb' + (qd.sel !== null && Math.abs(qd.sel - o.q) < 1e-9 ? " on" : "") + '" data-a="qd_pick" data-q="' + o.q + '">' + esc(o.label) + "</button>").join("") + "</div>" +
     '<div class="qd-q">' + t.qd_other + " (" + esc(u) + ')</div><input id="qd_c" type="number" inputmode="decimal" min="0" step="any">' +
     (qd.err ? '<p class="err" role="alert" style="margin-top:12px">' + esc(qd.err) + "</p>" : "") +
     '<button class="btn p big" style="margin-top:18px" data-a="qd_ok">' + t.confirm + '</button><button class="btn s big" style="margin-top:10px" data-a="qd_cancel">' + t.cancel + "</button></div>";
@@ -561,7 +659,7 @@ function openQd(pid) {
   if (!rows.length) { flash(T[lang].use_nostock, ""); render(); return; }
   qd = { pid, rows, sel: null, err: "", busy: false, mode: tab === "cook" ? "cook" : "use" }; renderQd();
 }
-function closeQd() { const el = document.getElementById("qd"); el.hidden = true; el.innerHTML = ""; qd = null; }
+function closeQd() { vStop(); const el = document.getElementById("qd"); el.hidden = true; el.innerHTML = ""; qd = null; }
 async function onUseCode(code) {
   useMsg = ""; useErr = ""; useCode = ""; cook.err = "";
   try {
@@ -890,6 +988,7 @@ const actions = {
   qd_open: (d) => openQd(d.p),
   qd_pick: (d) => { qd.sel = Number(d.q); qd.err = ""; renderQd(); },
   qd_cancel: closeQd,
+  qd_voice: () => { if (V.on) { vStop(); renderQd(); } else vRun(); },
   qd_ok: async () => {
     if (!qd || qd.busy) return;
     const t = T[lang];
