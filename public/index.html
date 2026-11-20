@@ -164,7 +164,7 @@ const T = {
     fullname:"Nombre completo", name_t:"Completa tu nombre", name_d:"Lo usaremos para mostrar qui\u00e9n es el due\u00f1o de cada producto, en lugar de tu correo.", save_name:"Guardar",
     rep_btn:"Informes", rep_title:"Informes", rep_back:"Volver", rep_days:(n)=>"\u00daltimos "+n+" d\u00edas", rep_person:"Persona", rep_all:"Todos", rep_buy:"Compras", rep_use:"Consumo", rep_waste:"Desperdicio", rep_records:"registros", rep_top_use:"M\u00e1s consumidos", rep_top_waste:"M\u00e1s desperdiciados", rep_pct:(p)=>p+" % de los registros de consumo y descarte son desperdicio.", rep_empty:"No hay movimientos en este per\u00edodo.", rep_note:"Los totales cuentan registros; las cantidades se muestran solo por producto. Las compras no incluyen comidas cocinadas.",
     ck_name:"Nombre de la comida", ck_portions:"Porciones", ck_exp:"Caduca el", ck_ings:"Ingredientes", ck_scan:"Escanear ingrediente", ck_pick:"Elegir por nombre", ck_move:"Guardar el resto en el refrigerador", ck_del:"Quitar", ck_save:"Guardar comida", ck_empty:"Agrega al menos un ingrediente.", ck_ok:(n)=>"Guardado: "+n+" qued\u00f3 en el refrigerador.", qd_qc:"\u00bfCu\u00e1nto usar\u00e1s?",
-    v_btn:"Hablar", v_stop:"Detener voz", v_ask:(n)=>"¿Cuánto vas a consumir de "+n+"?", v_askc:(n)=>"¿Cuánto usarás de "+n+"?", v_listen:"Escuchando...", v_heard:"Escuché: ", v_again:"No te entendí. Dime la cantidad, por ejemplo doscientos cincuenta gramos.", v_unit:"Esa unidad no corresponde a este producto.", v_toomuch:(a)=>"Solo hay "+a+" disponibles.", v_confirm:(q)=>"Entendí "+q+". ¿Confirmas?", v_retry:"Está bien. Dime la cantidad otra vez.", v_denied:"No hay permiso para usar el micrófono.", v_nomic:"No se encontró un micrófono.", v_none:"No escuché nada. Toca Hablar para intentarlo de nuevo.", sp:{ unit:"unidades", portion:"porciones", kg:"kilos", g:"gramos", l:"litros", ml:"mililitros", dose:"dosis", sachet:"bolsitas", tablet:"comprimidos" },
+    v_btn:"Hablar", v_stop:"Detener voz", v_ask:(n)=>"¿Cuánto vas a consumir de "+n+"?", v_askc:(n)=>"¿Cuánto usarás de "+n+"?", v_listen:"Escuchando...", v_heard:"Escuché: ", v_again:"No te entendí. Dime la cantidad, por ejemplo doscientos cincuenta gramos.", v_unit:"Esa unidad no corresponde a este producto.", v_toomuch:(a)=>"Solo hay "+a+" disponibles.", v_confirm:(q)=>"Entendí "+q+". ¿Confirmas?", v_retry:"Está bien. Dime la cantidad otra vez.", v_denied:"No hay permiso para usar el micrófono.", v_nomic:"No se encontró un micrófono.", v_none:"No escuché nada. Toca Hablar para intentarlo de nuevo.", v_nosound:"No se oye la voz. Revisa el volumen multimedia; la pregunta está escrita aquí.", sp:{ unit:"unidades", portion:"porciones", kg:"kilos", g:"gramos", l:"litros", ml:"mililitros", dose:"dosis", sachet:"bolsitas", tablet:"comprimidos" },
     used:(n,q,l)=>"Descontado "+q+" de "+n+". Quedan "+l+".", cook_t:"Pr\u00f3ximamente", cook_d:"Elegir\u00e1s los ingredientes, se descontar\u00e1n con FIFO y la comida quedar\u00e1 guardada en el refrigerador.", gift:"Regalar", gift_to:"Regalar a", f_owner:"Due\u00f1o",
     bk_t:"Respaldo de datos", bk_csv:"Descargar inventario (CSV)", bk_json:"Descargar respaldo completo (JSON)", bk_note:"Descarga una copia de vez en cuando y gu\u00e1rdala fuera del celular. El respaldo JSON es solo para el gestor y no incluye contrase\u00f1as.",
     photo_failed:"No se pudo traer la foto del producto; puedes tomarla t\u00fa.",
@@ -214,7 +214,7 @@ const T = {
     fullname:"Full name", name_t:"Add your name", name_d:"We will use it to show who owns each product, instead of your email.", save_name:"Save",
     rep_btn:"Reports", rep_title:"Reports", rep_back:"Back", rep_days:(n)=>"Last "+n+" days", rep_person:"Person", rep_all:"Everyone", rep_buy:"Purchases", rep_use:"Consumption", rep_waste:"Waste", rep_records:"records", rep_top_use:"Most used", rep_top_waste:"Most wasted", rep_pct:(p)=>p+" % of consumption and discard records are waste.", rep_empty:"There are no movements in this period.", rep_note:"Totals count records; quantities are shown per product only. Purchases do not include cooked meals.",
     ck_name:"Meal name", ck_portions:"Portions", ck_exp:"Expires on", ck_ings:"Ingredients", ck_scan:"Scan ingredient", ck_pick:"Pick by name", ck_move:"Keep the rest in the refrigerator", ck_del:"Remove", ck_save:"Save meal", ck_empty:"Add at least one ingredient.", ck_ok:(n)=>"Saved: "+n+" is now in the refrigerator.", qd_qc:"How much will you use?",
-    v_btn:"Speak", v_stop:"Stop voice", v_ask:(n)=>"How much "+n+" will you use?", v_askc:(n)=>"How much "+n+" will you use?", v_listen:"Listening...", v_heard:"Heard: ", v_again:"I did not understand. Tell me the amount, for example two hundred fifty grams.", v_unit:"That unit does not match this product.", v_toomuch:(a)=>"There is only "+a+" available.", v_confirm:(q)=>"I understood "+q+". Do you confirm?", v_retry:"Okay. Tell me the amount again.", v_denied:"There is no permission to use the microphone.", v_nomic:"No microphone was found.", v_none:"I heard nothing. Tap Speak to try again.", sp:{ unit:"units", portion:"portions", kg:"kilograms", g:"grams", l:"liters", ml:"milliliters", dose:"doses", sachet:"sachets", tablet:"tablets" },
+    v_btn:"Speak", v_stop:"Stop voice", v_ask:(n)=>"How much "+n+" will you use?", v_askc:(n)=>"How much "+n+" will you use?", v_listen:"Listening...", v_heard:"Heard: ", v_again:"I did not understand. Tell me the amount, for example two hundred fifty grams.", v_unit:"That unit does not match this product.", v_toomuch:(a)=>"There is only "+a+" available.", v_confirm:(q)=>"I understood "+q+". Do you confirm?", v_retry:"Okay. Tell me the amount again.", v_denied:"There is no permission to use the microphone.", v_nomic:"No microphone was found.", v_none:"I heard nothing. Tap Speak to try again.", v_nosound:"The voice is not audible. Check the media volume; the question is written here.", sp:{ unit:"units", portion:"portions", kg:"kilograms", g:"grams", l:"liters", ml:"milliliters", dose:"doses", sachet:"sachets", tablet:"tablets" },
     used:(n,q,l)=>"Deducted "+q+" of "+n+". "+l+" left.", cook_t:"Coming soon", cook_d:"You will pick the ingredients, they will be deducted with FIFO and the meal will be stored in the refrigerator.", gift:"Gift", gift_to:"Gift to", f_owner:"Owner",
     bk_t:"Data backup", bk_csv:"Download inventory (CSV)", bk_json:"Download full backup (JSON)", bk_note:"Download a copy now and then and keep it off the phone. The JSON backup is manager-only and has no passwords.",
     photo_failed:"The product photo could not be fetched; you can take one yourself.",
@@ -580,11 +580,21 @@ function parseSpoken(raw, pu) {
 function vSpeak(text) {
   return new Promise((ok) => {
     if (!("speechSynthesis" in window)) return ok();
-    const u = new SpeechSynthesisUtterance(text); u.lang = lang === "es" ? "es-CL" : "en-US";
+    vStatus(text);
+    let done = false, started = false, tm = 0, tw = 0;
+    const end = () => { if (done) return; done = true; clearTimeout(tm); clearTimeout(tw); ok(); };
+    const u = new SpeechSynthesisUtterance(text); V.utt = u;
+    u.lang = lang === "es" ? "es-CL" : "en-US"; u.volume = 1; u.rate = 1;
     const vs = speechSynthesis.getVoices().filter((x) => x.lang.toLowerCase().startsWith(lang));
     if (vs.length) u.voice = vs[0];
-    u.onend = () => ok(); u.onerror = () => ok();
-    speechSynthesis.cancel(); speechSynthesis.speak(u);
+    u.onstart = () => { started = true; };
+    u.onend = end;
+    u.onerror = (e) => { if (e.error !== "canceled" && e.error !== "interrupted") vStatus(T[lang].v_nosound + " (" + e.error + ")"); end(); };
+    tm = setTimeout(end, Math.max(4000, text.length * 120));
+    tw = setTimeout(() => { if (!started && !done) vStatus(T[lang].v_nosound); }, 2000);
+    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    if (speechSynthesis.paused) speechSynthesis.resume();
+    speechSynthesis.speak(u);
   });
 }
 function vStatus(m) { if (qd) qd.vs = m; const el = document.getElementById("qd_vs"); if (el) el.textContent = m; }
