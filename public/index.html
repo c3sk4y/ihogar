@@ -577,6 +577,16 @@ function parseSpoken(raw, pu) {
   if (tk.some((w) => YES.includes(w))) return { yes: true };
   return { none: true };
 }
+// Elige la voz y el idioma de síntesis: es-CL casi nunca existe en Chrome, por eso se busca la más cercana (D-036).
+function pickVoice() {
+  if (!("speechSynthesis" in window)) return null;
+  const want = lang === "es" ? ["es-cl", "es-us", "es-mx", "es-es"] : ["en-us", "en-gb"];
+  const norm = (x) => x.lang.toLowerCase().replace("_", "-");
+  const vs = speechSynthesis.getVoices().filter((x) => norm(x).startsWith(lang));
+  const rank = (x) => { const i = want.indexOf(norm(x)); return (i < 0 ? 9 : i) * 2 + (x.localService ? 0 : 1); };
+  return vs.sort((a, b) => rank(a) - rank(b))[0] || null;
+}
+if ("speechSynthesis" in window) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; }
 function vSpeak(text) {
   return new Promise((ok) => {
     if (!("speechSynthesis" in window)) return ok();
@@ -584,9 +594,9 @@ function vSpeak(text) {
     let done = false, started = false, tm = 0, tw = 0;
     const end = () => { if (done) return; done = true; clearTimeout(tm); clearTimeout(tw); ok(); };
     const u = new SpeechSynthesisUtterance(text); V.utt = u;
-    u.lang = lang === "es" ? "es-CL" : "en-US"; u.volume = 1; u.rate = 1;
-    const vs = speechSynthesis.getVoices().filter((x) => x.lang.toLowerCase().startsWith(lang));
-    if (vs.length) u.voice = vs[0];
+    u.volume = 1; u.rate = 1;
+    const pv = pickVoice();
+    if (pv) { u.voice = pv; u.lang = pv.lang; } else u.lang = lang === "es" ? "es-US" : "en-US";
     u.onstart = () => { started = true; };
     u.onend = end;
     u.onerror = (e) => { if (e.error !== "canceled" && e.error !== "interrupted") vStatus(T[lang].v_nosound + " (" + e.error + ")"); end(); };
